@@ -23,6 +23,12 @@
 </head>
 <body class="min-h-screen flex flex-col md:flex-row items-center justify-center gap-12 p-4 font-sans text-slate-800 overflow-hidden">
 
+    <!-- 返回首页按钮 -->
+    <a href="index.html" class="fixed top-4 left-4 z-50 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 border border-white/30">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        返回
+    </a>
+
     <!-- 游戏主区域 (玻璃质感网格) -->
     <div class="relative w-full max-w-[480px] aspect-square bg-white/10 rounded-xl shadow-2xl overflow-hidden border-[8px] border-[#e0f6ff] backdrop-blur-sm">
         <canvas id="gameCanvas" width="480" height="480" class="w-full h-full cursor-pointer"></canvas>
