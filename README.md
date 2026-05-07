@@ -53,6 +53,15 @@
 
 ---
 
+### ♟️ 中国象棋 (Chinese Chess)
+经典对弈游戏，与AI一决高下。
+
+- **玩法**: 传统中国象棋规则，与AI对战
+- **特色**: 典雅木纹棋盘，立体雕刻棋子，Minimax算法AI
+- **文件**: [ChineseChess.html](./ChineseChess.html)
+
+---
+
 ## 🚀 快速开始
 
 ### 方式一：直接打开
@@ -84,6 +93,7 @@ Games/
 ├── gomoku.html         # 五子棋游戏
 ├── sudoku.html         # 数独游戏
 ├── feihua.html         # 飞花令游戏
+├── ChineseChess.html   # 中国象棋游戏
 └── README.md           # 项目说明
 ```
 
