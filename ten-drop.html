@@ -6,9 +6,88 @@
     <title>十滴水 - 经典复刻版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* 主题定义 */
+        [data-theme="cyberpunk"] {
+            --bg: radial-gradient(circle at 50% 40%, #1a1a2e 0%, #0f172a 40%, #0a0a0f 100%);
+            --primary: #00fff0;
+            --liquid: #39ff14;
+            --glass-border: rgba(0, 255, 240, 0.5);
+            --glass-bg: rgba(0, 255, 240, 0.1);
+        }
+        [data-theme="ocean-depths"] {
+            --bg: radial-gradient(circle at 50% 40%, #1a3a52 0%, #0d2137 40%, #0a1628 100%);
+            --primary: #4dd0e1;
+            --liquid: #29b6f6;
+            --glass-border: rgba(77, 208, 225, 0.5);
+            --glass-bg: rgba(77, 208, 225, 0.1);
+        }
+        [data-theme="sunset-boulevard"] {
+            --bg: radial-gradient(circle at 50% 40%, #2d1b2e 0%, #1a1a2e 40%, #16213e 100%);
+            --primary: #ff6b6b;
+            --liquid: #feca57;
+            --glass-border: rgba(255, 107, 107, 0.5);
+            --glass-bg: rgba(255, 107, 107, 0.1);
+        }
+        [data-theme="forest-canopy"] {
+            --bg: radial-gradient(circle at 50% 40%, #2d4a2b 0%, #1e3d1e 40%, #1a2f1a 100%);
+            --primary: #81c784;
+            --liquid: #a5d6a7;
+            --glass-border: rgba(129, 199, 132, 0.5);
+            --glass-bg: rgba(129, 199, 132, 0.1);
+        }
+        [data-theme="modern-minimalist"] {
+            --bg: radial-gradient(circle at 50% 40%, #f8f9fa 0%, #e9ecef 40%, #dee2e6 100%);
+            --primary: #212529;
+            --liquid: #495057;
+            --glass-border: rgba(33, 37, 41, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+        }
+        [data-theme="golden-hour"] {
+            --bg: radial-gradient(circle at 50% 40%, #3d3020 0%, #2a2015 40%, #2c2416 100%);
+            --primary: #d4af37;
+            --liquid: #f4e4c1;
+            --glass-border: rgba(212, 175, 55, 0.5);
+            --glass-bg: rgba(212, 175, 55, 0.1);
+        }
+        [data-theme="arctic-frost"] {
+            --bg: radial-gradient(circle at 50% 40%, #e3f2fd 0%, #bbdefb 40%, #e1f5fe 100%);
+            --primary: #1976d2;
+            --liquid: #42a5f5;
+            --glass-border: rgba(25, 118, 210, 0.3);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
+        [data-theme="desert-rose"] {
+            --bg: radial-gradient(circle at 50% 40%, #3d282e 0%, #2d1f24 40%, #2d1f24 100%);
+            --primary: #e8b4b8;
+            --liquid: #f5e6e8;
+            --glass-border: rgba(232, 180, 184, 0.5);
+            --glass-bg: rgba(232, 180, 184, 0.1);
+        }
+        [data-theme="tech-innovation"] {
+            --bg: radial-gradient(circle at 50% 40%, #21262d 0%, #161b22 40%, #0d1117 100%);
+            --primary: #58a6ff;
+            --liquid: #79c0ff;
+            --glass-border: rgba(88, 166, 255, 0.5);
+            --glass-bg: rgba(88, 166, 255, 0.1);
+        }
+        [data-theme="botanical-garden"] {
+            --bg: radial-gradient(circle at 50% 40%, #2e7d32 0%, #1b5e20 40%, #1b5e20 100%);
+            --primary: #ffeb3b;
+            --liquid: #c8e6c9;
+            --glass-border: rgba(255, 235, 59, 0.5);
+            --glass-bg: rgba(255, 235, 59, 0.1);
+        }
+        [data-theme="midnight-galaxy"] {
+            --bg: radial-gradient(circle at 50% 40%, #302b63 0%, #24243e 40%, #0f0c29 100%);
+            --primary: #b39ddb;
+            --liquid: #e1bee7;
+            --glass-border: rgba(179, 157, 219, 0.5);
+            --glass-bg: rgba(179, 157, 219, 0.1);
+        }
+
         body {
-            /* 模拟截图中的室内暗环境背景 */
-            background: radial-gradient(circle at 50% 40%, #64748b 0%, #334155 40%, #0f172a 100%);
+            background: var(--bg);
+            transition: all 0.5s ease;
         }
         /* 取消Canvas的点击高亮和默认交互 */
         canvas {
@@ -17,20 +96,60 @@
         }
         /* 玻璃烧瓶特效 */
         .glass-beaker {
-            box-shadow: inset 0 -10px 30px rgba(255,255,255,0.4), 0 0 20px rgba(0,255,0,0.2);
+            box-shadow: inset 0 -10px 30px rgba(255,255,255,0.4), 0 0 20px var(--glass-border);
+            border-color: var(--glass-border) !important;
+            background: var(--glass-bg) !important;
+        }
+        .game-board {
+            border-color: var(--glass-border) !important;
+            background: var(--glass-bg) !important;
+        }
+        .liquid {
+            background: var(--liquid) !important;
+        }
+
+        /* 返回首页按钮 */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary);
+        }
+
+        .back-btn svg {
+            width: 18px;
+            height: 18px;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row items-center justify-center gap-12 p-4 font-sans text-slate-800 overflow-hidden">
+<body data-theme="cyberpunk" class="min-h-screen flex flex-col md:flex-row items-center justify-center gap-12 p-4 font-sans text-slate-800 overflow-hidden">
 
     <!-- 返回首页按钮 -->
-    <a href="index.html" class="fixed top-4 left-4 z-50 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 border border-white/30">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <a href="index.html" class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         返回
     </a>
 
     <!-- 游戏主区域 (玻璃质感网格) -->
-    <div class="relative w-full max-w-[480px] aspect-square bg-white/10 rounded-xl shadow-2xl overflow-hidden border-[8px] border-[#e0f6ff] backdrop-blur-sm">
+    <div class="relative w-full max-w-[480px] aspect-square game-board rounded-xl shadow-2xl overflow-hidden border-[8px] border-[#e0f6ff] backdrop-blur-sm">
         <canvas id="gameCanvas" width="480" height="480" class="w-full h-full cursor-pointer"></canvas>
 
         <!-- 模态框 (通关/游戏结束提示) -->
@@ -50,7 +169,7 @@
         <!-- 玻璃烧瓶容积 -->
         <div class="relative w-40 h-40 rounded-full border-[6px] border-white/70 bg-white/10 overflow-hidden glass-beaker flex items-center justify-center shadow-2xl">
             <!-- 内部液面 -->
-            <div id="liquidLevel" class="absolute bottom-0 w-full h-[60%] bg-[#39ff14] transition-all duration-500" style="box-shadow: inset 0 10px 20px rgba(255,255,255,0.5);"></div>
+            <div id="liquidLevel" class="liquid absolute bottom-0 w-full h-[60%] bg-[#39ff14] transition-all duration-500" style="box-shadow: inset 0 10px 20px rgba(255,255,255,0.5);"></div>
             <!-- 高光 -->
             <div class="absolute top-2 left-4 w-12 h-6 bg-white/60 rounded-full rotate-[-30deg] blur-[2px]"></div>
             <!-- 数值 (黑边黑影增加对比) -->
@@ -64,6 +183,15 @@
     </div>
 
     <script>
+        // 主题初始化
+        function getThemeFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('theme');
+        }
+        const urlTheme = getThemeFromURL();
+        const savedTheme = urlTheme || localStorage.getItem('game-theme') || 'cyberpunk';
+        document.body.setAttribute('data-theme', savedTheme);
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 

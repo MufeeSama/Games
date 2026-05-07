@@ -469,6 +469,18 @@
             setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 300);
         });
 
+        // 主题初始化
+        function getThemeFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('theme');
+        }
+        const urlTheme = getThemeFromURL();
+        const savedTheme = urlTheme || localStorage.getItem('game-theme') || 'cyberpunk';
+        // 飞花令保持古典风格，但应用主题色调
+        if (savedTheme === 'modern-minimalist' || savedTheme === 'arctic-frost') {
+            document.body.style.backgroundColor = '#f0f0f0';
+        }
+
     </script>
 </body>
 </html>
