@@ -139,6 +139,38 @@
             height: 18px;
         }
 
+        /* 静音按钮 */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: var(--glass-bg);
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            width: 44px;
+            height: 44px;
+        }
+
+        .sound-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary);
+        }
+
+        .sound-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
         /* 手机端适配 */
         @media (max-width: 768px) {
             body {
@@ -158,6 +190,16 @@
                 order: -1;
             }
 
+            .sound-toggle {
+                position: relative;
+                top: auto;
+                right: auto;
+                width: 40px;
+                height: 40px;
+                padding: 8px;
+                order: -1;
+            }
+
             .game-board {
                 max-width: 90vw !important;
             }
@@ -171,6 +213,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         返回
     </a>
+
+    <!-- 静音切换按钮 -->
+    <button id="soundToggle" class="sound-toggle" title="切换音效">
+        <svg id="iconSoundOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <svg id="iconSoundOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+    </button>
 
     <!-- 游戏主区域 (玻璃质感网格) -->
     <div class="relative w-full max-w-[480px] aspect-square game-board rounded-xl shadow-2xl overflow-hidden border-[8px] border-[#e0f6ff] backdrop-blur-sm">
@@ -207,6 +255,142 @@
     </div>
 
     <script>
+        // ==================== 音效引擎 ====================
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.volume = 0.4;
+                this.initAudio();
+            }
+
+            initAudio() {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Web Audio API not supported');
+                }
+            }
+
+            resume() {
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            _playOsc(type, frequency, duration, fadeOut = 0.02) {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(frequency, t);
+                gain.gain.setValueAtTime(this.volume, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + duration + fadeOut);
+            }
+
+            _playNoise(duration) {
+                if (!this.enabled || !this.ctx) return;
+                this.resume();
+                const t = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * duration;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(this.volume * 0.6, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+                noise.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(t);
+            }
+
+            // 1. 滴答声：放置水滴
+            playDrop() {
+                this._playOsc('sine', 1200, 0.06);
+                setTimeout(() => this._playOsc('sine', 600, 0.04), 30);
+            }
+
+            // 2. 咕咚声：碰撞合并
+            playMerge() {
+                this._playOsc('sine', 350, 0.12);
+                setTimeout(() => this._playOsc('sine', 250, 0.1), 40);
+            }
+
+            // 3. 啪声：爆裂
+            playBurst() {
+                this._playNoise(0.1);
+                this._playOsc('triangle', 200, 0.08);
+            }
+
+            // 4. 连锁递进：音高随连锁次数递增
+            playChain(level) {
+                const baseFreq = 440 + Math.min(level, 8) * 110;
+                this._playOsc('sine', baseFreq, 0.08);
+                setTimeout(() => this._playOsc('sine', baseFreq * 1.25, 0.06), 50);
+            }
+
+            // 5. 胜利音效：上行音阶
+            playWin() {
+                const notes = [523, 659, 784, 1047];
+                notes.forEach((freq, i) => {
+                    setTimeout(() => this._playOsc('sine', freq, 0.2), i * 100);
+                });
+            }
+
+            // 6. 失败音效：下行低音
+            playLose() {
+                const notes = [300, 250, 200, 150];
+                notes.forEach((freq, i) => {
+                    setTimeout(() => this._playOsc('triangle', freq, 0.4), i * 150);
+                });
+            }
+
+            // 7. 叮声：奖励
+            playReward() {
+                const t = this.ctx ? this.ctx.currentTime : 0;
+                [1760, 2217].forEach((freq, i) => {
+                    setTimeout(() => {
+                        if (!this.enabled || !this.ctx) return;
+                        this.resume();
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                        gain.gain.setValueAtTime(this.volume * 0.5, this.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(this.ctx.currentTime);
+                        osc.stop(this.ctx.currentTime + 0.35);
+                    }, i * 60);
+                });
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        // 静音按钮事件
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            const on = sound.toggle();
+            document.getElementById('iconSoundOn').style.display = on ? 'block' : 'none';
+            document.getElementById('iconSoundOff').style.display = on ? 'none' : 'block';
+        });
+
         // 主题初始化
         function getThemeFromURL() {
             const params = new URLSearchParams(window.location.search);
@@ -462,7 +646,12 @@
                         // 如果距离网格中心非常近（使用速度的一半来容错）
                         if (Math.abs(b.cx - center_x) <= Math.abs(b.vx)/2 && Math.abs(b.cy - center_y) <= Math.abs(b.vy)/2) {
                             if (grid[c][r] < 5) {
+                                const oldSize = grid[c][r];
                                 grid[c][r]++;
+                                // 音效：碰撞合并（非爆裂时）
+                                if (grid[c][r] < 5) {
+                                    sound.playMerge();
+                                }
                                 // 达到5级，加入爆裂队列
                                 if (grid[c][r] === 5) {
                                     burstQueue.push({c, r});
@@ -491,6 +680,10 @@
                     bullets.push({cx, cy, vx: 0, vy: -SPEED});
 
                     burstCount++;
+                    // 音效：爆裂 + 连锁递进
+                    sound.playBurst();
+                    sound.playChain(burstCount);
+
                     // 游戏核心规则：连爆奖励。从连锁反应的第3个爆裂开始，每一个爆裂额外奖励1滴水。
                     if (burstCount >= 3) {
                         dropsLeft++;
@@ -501,6 +694,8 @@
                             alpha: 1.0,
                             life: 60
                         });
+                        // 音效：奖励
+                        sound.playReward();
                         updateHUD();
                     }
                 }
@@ -540,11 +735,13 @@
                 level++;
                 // 游戏核心规则：通关后奖励一滴水
                 dropsLeft++; 
+                sound.playWin();
                 showModal('通关！', '恭喜清除所有水滴，奖励 1 滴水。', '进入下一关', () => {
                     initLevel();
                 });
             } else if (dropsLeft <= 0) {
                 gameState = 'modal';
+                sound.playLose();
                 showModal('水滴用尽', `遗憾，您止步于第 ${level} 关`, '重新开始', () => {
                     level = 1;
                     dropsLeft = 10;
@@ -605,6 +802,9 @@
                 burstCount = 0; // 玩家每次主动点击时，重置连击计数器
                 grid[c][r]++;
                 
+                // 音效：放置水滴
+                sound.playDrop();
+
                 // 如果到达5级立刻加入爆裂队列
                 if (grid[c][r] >= 5) {
                     burstQueue.push({c, r});
