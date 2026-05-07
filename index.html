@@ -32,6 +32,13 @@
             margin: 0 auto;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
             gap: 12px;
         }
 
@@ -49,6 +56,31 @@
         h1 {
             font-size: 20px;
             color: #1f2937;
+        }
+
+        /* 主题选择器样式 */
+        .theme-selector {
+            position: relative;
+        }
+
+        .theme-selector select {
+            padding: 8px 32px 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+        }
+
+        .theme-selector select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
         main {
@@ -163,6 +195,13 @@
         }
 
         @media (max-width: 640px) {
+            .header-content {
+                flex-wrap: wrap;
+            }
+            .theme-selector select {
+                font-size: 13px;
+                padding: 6px 28px 6px 10px;
+            }
             .hero h2 {
                 font-size: 28px;
             }
@@ -178,8 +217,25 @@
 <body>
     <header>
         <div class="header-content">
-            <div class="logo">🎮</div>
-            <h1>游戏中心</h1>
+            <div class="header-left">
+                <div class="logo">🎮</div>
+                <h1>游戏中心</h1>
+            </div>
+            <div class="theme-selector">
+                <select id="themeSelect">
+                    <option value="cyberpunk">赛博朋克</option>
+                    <option value="ocean-depths">深海</option>
+                    <option value="sunset-boulevard">日落大道</option>
+                    <option value="forest-canopy">森林</option>
+                    <option value="modern-minimalist">极简</option>
+                    <option value="golden-hour">黄金时刻</option>
+                    <option value="arctic-frost">北极霜冻</option>
+                    <option value="desert-rose">沙漠玫瑰</option>
+                    <option value="tech-innovation">科技</option>
+                    <option value="botanical-garden">植物园</option>
+                    <option value="midnight-galaxy">午夜银河</option>
+                </select>
+            </div>
         </div>
     </header>
 
@@ -190,7 +246,7 @@
         </div>
 
         <div class="games-grid">
-            <a href="ten-drop.html" class="game-card cyan">
+            <a href="ten-drop.html" class="game-card cyan" data-game="ten-drop">
                 <div class="game-icon">💧</div>
                 <h3 class="game-title">十滴水</h3>
                 <p class="game-desc">策略消除类游戏，点击水滴使其破裂并引发连锁反应</p>
@@ -200,7 +256,7 @@
                 </span>
             </a>
 
-            <a href="chengyu.html" class="game-card amber">
+            <a href="chengyu.html" class="game-card amber" data-game="chengyu">
                 <div class="game-icon">📖</div>
                 <h3 class="game-title">成语接龙</h3>
                 <p class="game-desc">考验你的成语知识，接龙挑战看你能走多远</p>
@@ -210,7 +266,7 @@
                 </span>
             </a>
 
-            <a href="gomoku.html" class="game-card slate">
+            <a href="gomoku.html" class="game-card slate" data-game="gomoku">
                 <div class="game-icon">⚫</div>
                 <h3 class="game-title">五子棋</h3>
                 <p class="game-desc">经典双人对弈游戏，先连成五子者获胜</p>
@@ -220,7 +276,7 @@
                 </span>
             </a>
 
-            <a href="sudoku.html" class="game-card indigo">
+            <a href="sudoku.html" class="game-card indigo" data-game="sudoku">
                 <div class="game-icon">🔢</div>
                 <h3 class="game-title">数独</h3>
                 <p class="game-desc">数字逻辑谜题，填满9x9网格使每行每列都包含1-9</p>
@@ -230,7 +286,7 @@
                 </span>
             </a>
 
-            <a href="feihua.html" class="game-card rose">
+            <a href="feihua.html" class="game-card rose" data-game="feihua">
                 <div class="game-icon">🌸</div>
                 <h3 class="game-title">飞花令</h3>
                 <p class="game-desc">诗词对答游戏，考验你的古诗词功底</p>
@@ -245,5 +301,42 @@
     <footer>
         <p>点击任意游戏卡片即可开始游玩</p>
     </footer>
+
+    <script>
+        // 主题管理
+        const themeSelect = document.getElementById('themeSelect');
+        const gameCards = document.querySelectorAll('.game-card');
+
+        // 可用的主题列表
+        const themes = [
+            'cyberpunk', 'ocean-depths', 'sunset-boulevard', 'forest-canopy',
+            'modern-minimalist', 'golden-hour', 'arctic-frost', 'desert-rose',
+            'tech-innovation', 'botanical-garden', 'midnight-galaxy'
+        ];
+
+        // 从 localStorage 加载保存的主题
+        const savedTheme = localStorage.getItem('game-theme') || 'cyberpunk';
+        themeSelect.value = savedTheme;
+
+        // 保存主题到 localStorage
+        function saveTheme(theme) {
+            localStorage.setItem('game-theme', theme);
+        }
+
+        // 监听主题切换
+        themeSelect.addEventListener('change', (e) => {
+            saveTheme(e.target.value);
+        });
+
+        // 为游戏卡片添加主题参数
+        gameCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                e.preventDefault();
+                const currentTheme = themeSelect.value;
+                const href = card.getAttribute('href');
+                window.location.href = `${href}?theme=${currentTheme}`;
+            });
+        });
+    </script>
 </body>
 </html>

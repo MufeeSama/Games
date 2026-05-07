@@ -121,9 +121,15 @@
 </head>
 <body class="flex flex-col h-screen w-screen relative">
 
+    <!-- 返回首页按钮 -->
+    <a href="index.html" class="fixed top-4 left-4 z-50 bg-[#8c6239] hover:bg-[#6b4a2b] text-[#f0e6d2] px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        返回
+    </a>
+
     <!-- 顶部状态栏 -->
     <div class="h-20 shrink-0 flex items-center justify-between px-6 bg-[#f0e6d2] z-10 shadow-sm border-b border-[#c8a361]/30">
-        <div class="flex items-end gap-3">
+        <div class="flex items-end gap-3 ml-20">
             <h1 class="text-4xl font-black text-[var(--ink)] tracking-widest">成语接龙</h1>
             <span class="text-sm text-[var(--bamboo-dark)] font-bold pb-1">同字相接 · 万卷藏书</span>
         </div>
