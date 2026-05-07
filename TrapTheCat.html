@@ -286,6 +286,36 @@
             height: 16px;
         }
 
+        .sound-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            background: var(--bg-panel);
+            color: var(--primary);
+            border: var(--card-border);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .sound-toggle:hover {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .sound-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
         .header {
             margin-bottom: 24px;
             width: 100%;
@@ -562,6 +592,12 @@
                 padding: 6px 10px;
                 font-size: 12px;
             }
+            .sound-toggle {
+                top: 8px;
+                right: 8px;
+                width: 36px;
+                height: 36px;
+            }
             .header {
                 margin-bottom: 16px;
                 gap: 12px;
@@ -589,6 +625,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span>返回</span>
     </a>
+
+    <button class="sound-toggle" id="sound-toggle" onclick="sound.toggle(); updateSoundIcon();" aria-label="切换声音">
+        <svg id="sound-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="sound-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+    </button>
 
     <div class="header">
         <div class="title-row">
@@ -623,6 +664,92 @@
     </div>
 
     <script>
+        class SoundEngine {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+
+            _ctx() {
+                if (!this.enabled) return null;
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return null;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                return this.ctx;
+            }
+
+            _tone(freq, duration, type = 'sine', volume = 0.15) {
+                const ctx = this._ctx();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + duration);
+            }
+
+            playDrop() {
+                this._tone(880, 0.08, 'sine', 0.12);
+            }
+
+            playMove() {
+                this._tone(300, 0.06, 'triangle', 0.08);
+            }
+
+            playWin() {
+                const ctx = this._ctx();
+                if (!ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.1);
+                    osc.stop(ctx.currentTime + i * 0.1 + 0.25);
+                });
+            }
+
+            playLose() {
+                const ctx = this._ctx();
+                if (!ctx) return;
+                const notes = [392.00, 349.23, 293.66, 246.94];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.35);
+                });
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+
+        const sound = new SoundEngine();
+
         const ROWS = 11;
         const COLS = 11;
 
@@ -715,6 +842,7 @@
             blockedCells.add(key);
             steps++;
             stepsEl.innerText = steps;
+            sound.playDrop();
             const cell = document.getElementById(`cell-${r}-${c}`);
             cell.classList.add('blocked');
             cell.innerHTML = `<div class="blocked-icon">${SVG_BLOCKED}</div>`;
@@ -791,6 +919,7 @@
             oldCell.classList.remove('has-cat');
             oldCell.innerHTML = '';
             catPos = { r: newR, c: newC };
+            sound.playMove();
             const newCell = document.getElementById(`cell-${newR}-${newC}`);
             newCell.classList.add('has-cat');
             newCell.innerHTML = `<div class="cat-icon">${SVG_CAT_NORMAL}</div>`;
@@ -802,16 +931,30 @@
             const desc = document.getElementById('modal-desc');
             const icon = document.getElementById('modal-icon');
             if (playerWon) {
+                sound.playWin();
                 icon.innerHTML = SVG_CAT_HAPPY;
                 title.innerText = "你赢了！";
                 desc.innerHTML = `太棒了！你仅用了 <b style="color:var(--primary)">${steps}</b> 步就成功围住了小猫。`;
             } else {
+                sound.playLose();
                 icon.innerHTML = SVG_CAT_CRYING;
                 title.innerText = "小猫跑掉了！";
                 desc.innerHTML = `你没能围住它，再试一次吧。`;
             }
             modal.classList.add('show');
             document.getElementById('modal-content').classList.add('modal-enter');
+        }
+
+        function updateSoundIcon() {
+            const on = document.getElementById('sound-icon-on');
+            const off = document.getElementById('sound-icon-off');
+            if (sound.enabled) {
+                on.style.display = '';
+                off.style.display = 'none';
+            } else {
+                on.style.display = 'none';
+                off.style.display = '';
+            }
         }
 
         function getThemeFromURL() {

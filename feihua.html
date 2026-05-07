@@ -96,6 +96,17 @@
                 width: 16px;
                 height: 16px;
             }
+
+            #sound-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px;
+            }
+
+            #sound-toggle svg {
+                width: 18px;
+                height: 18px;
+            }
         }
     </style>
 </head>
@@ -106,6 +117,12 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         返回
     </a>
+
+    <!-- 声音切换按钮 -->
+    <button id="sound-toggle" class="fixed top-4 right-4 z-50 bg-[#2c2e2f] hover:bg-[#1a1a1a] text-[#f5eedc] px-3 py-2 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg" onclick="toggleSound()">
+        <svg id="sound-icon-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="sound-icon-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+    </button>
 
     <div class="paper-container w-full h-full sm:h-[90vh] sm:w-[420px] sm:rounded-lg overflow-hidden flex flex-col relative ancient-border">
         
@@ -180,6 +197,137 @@
     </div>
 
     <script>
+        class SoundEngine {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+
+            _playOscillator(freq, duration, type = 'sine', decay = 0.3) {
+                if (!this.enabled || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + duration * decay);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + duration);
+            }
+
+            playSubmit() {
+                if (!this.enabled || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const freqs = [440, 528, 660];
+                freqs.forEach((f, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, t + i * 0.08);
+                    gain.gain.setValueAtTime(0.15, t + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t + i * 0.08);
+                    osc.stop(t + i * 0.08 + 0.4);
+                });
+            }
+
+            playAIResponse() {
+                if (!this.enabled || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.15;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+                }
+                const source = this.ctx.createBufferSource();
+                source.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 1200;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.2, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                source.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                source.start(t);
+            }
+
+            playError() {
+                if (!this.enabled || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(180, t);
+                osc.frequency.exponentialRampToValueAtTime(120, t + 0.15);
+                gain.gain.setValueAtTime(0.3, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.25);
+            }
+
+            playWin() {
+                if (!this.enabled || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const notes = [392, 494, 587, 784];
+                notes.forEach((f, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, t + i * 0.25);
+                    gain.gain.setValueAtTime(0.2, t + i * 0.25);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.25 + 1.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t + i * 0.25);
+                    osc.stop(t + i * 0.25 + 1.2);
+                });
+            }
+
+            playLose() {
+                if (!this.enabled || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const notes = [330, 294, 262];
+                notes.forEach((f, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, t + i * 0.35);
+                    gain.gain.setValueAtTime(0.2, t + i * 0.35);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.35 + 0.8);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(t + i * 0.35);
+                    osc.stop(t + i * 0.35 + 0.8);
+                });
+            }
+        }
+
+        const soundEngine = new SoundEngine();
+
         // 大幅扩充的诗词数据库（支持整句验证，玩家只需输入半句即可通过）
         const poetryDB = {
             '花': [
@@ -1349,11 +1497,12 @@
                 chatBox.removeChild(chatBox.lastChild); 
 
                 if (availablePoems.length === 0) {
+                    soundEngine.playWin();
                     endGame(true, "对方江郎才尽，阁下大获全胜！");
                 } else {
                     const picked = availablePoems[Math.floor(Math.random() * availablePoems.length)];
                     usedPoems.add(stripPunctuation(picked));
-                    
+
                     // AI 回答时展示半句还是全句随机，增加真实感
                     let showText = picked;
                     if(picked.includes('，') && Math.random() > 0.5) {
@@ -1361,9 +1510,10 @@
                          if(parts.length > 0) showText = parts[0];
                     }
 
+                    soundEngine.playAIResponse();
                     renderMessage(showText, true);
                     rounds++;
-                    
+
                     isPlayerTurn = true;
                     playerInput.disabled = false;
                     playerInput.focus();
@@ -1374,25 +1524,29 @@
 
         function handlePlayerSubmit() {
             if (!isPlayerTurn) return;
-            
+
             let text = playerInput.value.trim();
             if (!text) return;
 
+            soundEngine.init();
+
             // 1. 包含关键字
             if (!text.includes(currentKeyword)) {
+                soundEngine.playError();
                 showToast(`必须包含关键字「${currentKeyword}」`);
                 return;
             }
 
             const cleanText = stripPunctuation(text);
             if (cleanText.length < 3) {
+                soundEngine.playError();
                 showToast("诗句过短，请查证");
                 return;
             }
 
             // 2. 数据库校验防乱编
             let isValidPoem = false;
-            let matchedDBPoem = ""; 
+            let matchedDBPoem = "";
             for (let p of poetryDB[currentKeyword]) {
                 const cleanDBText = stripPunctuation(p);
                 // 允许玩家输入整首诗的半句，或带标点的全句
@@ -1404,6 +1558,7 @@
             }
 
             if (!isValidPoem) {
+                soundEngine.playError();
                 showToast("未收录该诗或非古诗词，请换一句");
                 return;
             }
@@ -1416,17 +1571,19 @@
                 }
             }
             if (isUsed) {
+                soundEngine.playError();
                 showToast("这首诗刚才已经用过啦，请换一首");
                 return;
             }
 
             // 验证通过
+            soundEngine.playSubmit();
             stopTimer();
             usedPoems.add(matchedDBPoem); // 将匹配到的完整原句加入已使用库
             renderMessage(text, false);
             playerInput.value = '';
             playerInput.disabled = true;
-            
+
             aiTurn();
         }
 
@@ -1446,16 +1603,28 @@
 
         function endGame(playerWon, reason) {
             stopTimer();
+            if (playerWon) {
+                soundEngine.playWin();
+            } else {
+                soundEngine.playLose();
+            }
             showScreen('result');
-            
+
             document.getElementById('result-title').innerText = playerWon ? "大获全胜" : "遗憾落败";
             document.getElementById('result-title').style.color = playerWon ? "var(--seal-red)" : "var(--ink-light)";
-            
+
             document.getElementById('result-desc').innerHTML = `${reason}<br>共历经 <span class="text-[var(--seal-red)] font-bold text-xl">${rounds}</span> 轮交锋。`;
         }
 
         function resetGame() {
             showScreen('start');
+        }
+
+        function toggleSound() {
+            soundEngine.init();
+            const enabled = soundEngine.toggle();
+            document.getElementById('sound-icon-on').style.display = enabled ? 'block' : 'none';
+            document.getElementById('sound-icon-off').style.display = enabled ? 'none' : 'block';
         }
 
         submitBtn.addEventListener('click', handlePlayerSubmit);
