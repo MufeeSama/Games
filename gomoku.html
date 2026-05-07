@@ -1005,7 +1005,19 @@ canvas {
 @media (max-width: 768px) {
   body {
     align-items: flex-start;
-    padding-top: 12px;
+    padding-top: 60px;
+  }
+
+  .back-btn {
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .back-btn:hover {
+    transform: translateX(-50%) translateY(-2px);
   }
 
   .container {

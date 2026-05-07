@@ -70,6 +70,32 @@
             writing-mode: vertical-rl;
             text-orientation: upright;
         }
+
+        /* 手机端适配 */
+        @media (max-width: 640px) {
+            body {
+                padding-top: 50px;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .paper-container {
+                height: calc(100vh - 60px) !important;
+            }
+
+            .fixed.top-4 {
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+
+            .fixed.top-4 svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center h-screen w-screen">

@@ -138,6 +138,26 @@
             width: 18px;
             height: 18px;
         }
+
+        /* 手机端适配 */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 50px;
+                overflow-y: auto !important;
+            }
+
+            .back-btn {
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+
+            .game-board {
+                max-width: 90vw !important;
+            }
+        }
     </style>
 </head>
 <body data-theme="cyberpunk" class="min-h-screen flex flex-col md:flex-row items-center justify-center gap-12 p-4 font-sans text-slate-800 overflow-hidden">
