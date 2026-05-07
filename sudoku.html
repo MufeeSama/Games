@@ -4,538 +4,770 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数独游戏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ========== 主题定义 ========== */
+        [data-theme="cyberpunk"] {
+            --bg: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+            --bg-panel: rgba(13, 13, 20, 0.95);
+            --primary: #00fff0;
+            --secondary: #ff00ff;
+            --accent: #fcee0a;
+            --text: #e0e0e0;
+            --text-dim: #666680;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 0 20px rgba(0, 255, 240, 0.5);
+            --card-bg: rgba(13, 13, 20, 0.9);
+            --card-border: 1px solid rgba(0, 255, 240, 0.3);
+            --radius: 0;
+            --shadow: 0 0 30px rgba(0, 255, 240, 0.1);
+            --grid-border: #00fff0;
+            --cell-bg: rgba(0, 255, 240, 0.05);
+            --cell-selected: rgba(0, 255, 240, 0.2);
+            --btn-primary: linear-gradient(135deg, #00fff0, #00cccc);
+            --btn-success: linear-gradient(135deg, #00ff88, #00cc6a);
+            --btn-warning: linear-gradient(135deg, #fcee0a, #ccbe00);
+            --btn-danger: linear-gradient(135deg, #ff00ff, #cc00cc);
         }
-        
+
+        [data-theme="ocean-depths"] {
+            --bg: linear-gradient(180deg, #0a1628 0%, #1a3a52 50%, #0d2137 100%);
+            --bg-panel: rgba(26, 58, 82, 0.9);
+            --primary: #4dd0e1;
+            --secondary: #80deea;
+            --accent: #b2ebf2;
+            --text: #e0f7fa;
+            --text-dim: #81d4fa;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 20px rgba(77, 208, 225, 0.3);
+            --card-bg: rgba(26, 58, 82, 0.95);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --grid-border: #4dd0e1;
+            --cell-bg: rgba(77, 208, 225, 0.08);
+            --cell-selected: rgba(77, 208, 225, 0.25);
+            --btn-primary: linear-gradient(135deg, #4dd0e1, #26c6da);
+            --btn-success: linear-gradient(135deg, #69f0ae, #00e676);
+            --btn-warning: linear-gradient(135deg, #ffd54f, #ffc107);
+            --btn-danger: linear-gradient(135deg, #ff8a80, #ff5252);
+        }
+
+        [data-theme="sunset-boulevard"] {
+            --bg: linear-gradient(135deg, #2d1b2e 0%, #1a1a2e 50%, #16213e 100%);
+            --bg-panel: rgba(45, 27, 46, 0.9);
+            --primary: #ff6b6b;
+            --secondary: #feca57;
+            --accent: #ff9ff3;
+            --text: #ffeaa7;
+            --text-dim: #fab1a0;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 20px rgba(255, 107, 107, 0.3);
+            --card-bg: rgba(45, 27, 46, 0.95);
+            --card-border: none;
+            --radius: 12px;
+            --shadow: 0 10px 40px rgba(255, 107, 107, 0.2);
+            --grid-border: #ff6b6b;
+            --cell-bg: rgba(255, 107, 107, 0.08);
+            --cell-selected: rgba(255, 107, 107, 0.25);
+            --btn-primary: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            --btn-success: linear-gradient(135deg, #1dd1a1, #10ac84);
+            --btn-warning: linear-gradient(135deg, #feca57, #f39c12);
+            --btn-danger: linear-gradient(135deg, #ff9ff3, #f368e0);
+        }
+
+        [data-theme="forest-canopy"] {
+            --bg: linear-gradient(160deg, #1a2f1a 0%, #2d4a2b 50%, #1e3d1e 100%);
+            --bg-panel: rgba(45, 74, 43, 0.9);
+            --primary: #a5d6a7;
+            --secondary: #81c784;
+            --accent: #c8e6c9;
+            --text: #e8f5e9;
+            --text-dim: #a5d6a7;
+            --font-display: 'Noto Sans SC', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 15px rgba(129, 199, 132, 0.25);
+            --card-bg: rgba(45, 74, 43, 0.95);
+            --card-border: none;
+            --radius: 12px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+            --grid-border: #81c784;
+            --cell-bg: rgba(129, 199, 132, 0.1);
+            --cell-selected: rgba(129, 199, 132, 0.3);
+            --btn-primary: linear-gradient(135deg, #81c784, #66bb6a);
+            --btn-success: linear-gradient(135deg, #a5d6a7, #81c784);
+            --btn-warning: linear-gradient(135deg, #fff59d, #fff176);
+            --btn-danger: linear-gradient(135deg, #ef9a9a, #e57373);
+        }
+
+        [data-theme="modern-minimalist"] {
+            --bg: #f8f9fa;
+            --bg-panel: #ffffff;
+            --primary: #212529;
+            --secondary: #495057;
+            --accent: #000000;
+            --text: #212529;
+            --text-dim: #6c757d;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: none;
+            --card-bg: #ffffff;
+            --card-border: 1px solid #dee2e6;
+            --radius: 8px;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --grid-border: #212529;
+            --cell-bg: #f8f9fa;
+            --cell-selected: #e9ecef;
+            --btn-primary: #212529;
+            --btn-success: #198754;
+            --btn-warning: #ffc107;
+            --btn-danger: #dc3545;
+        }
+
+        [data-theme="golden-hour"] {
+            --bg: linear-gradient(145deg, #2c2416 0%, #3d3020 50%, #2a2015 100%);
+            --bg-panel: rgba(61, 48, 32, 0.95);
+            --primary: #d4af37;
+            --secondary: #c9a227;
+            --accent: #f4e4c1;
+            --text: #f5f0e1;
+            --text-dim: #c9b896;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 20px rgba(212, 175, 55, 0.25);
+            --card-bg: rgba(61, 48, 32, 0.98);
+            --card-border: 1px solid rgba(212, 175, 55, 0.3);
+            --radius: 4px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --grid-border: #d4af37;
+            --cell-bg: rgba(212, 175, 55, 0.08);
+            --cell-selected: rgba(212, 175, 55, 0.25);
+            --btn-primary: linear-gradient(135deg, #d4af37, #b8960b);
+            --btn-success: linear-gradient(135deg, #c5e1a5, #aed581);
+            --btn-warning: linear-gradient(135deg, #ffe082, #ffd54f);
+            --btn-danger: linear-gradient(135deg, #ef9a9a, #e57373);
+        }
+
+        [data-theme="arctic-frost"] {
+            --bg: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 50%, #e1f5fe 100%);
+            --bg-panel: rgba(255, 255, 255, 0.98);
+            --primary: #1976d2;
+            --secondary: #42a5f5;
+            --accent: #0d47a1;
+            --text: #1565c0;
+            --text-dim: #64b5f6;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 15px rgba(25, 118, 210, 0.2);
+            --card-bg: rgba(255, 255, 255, 0.99);
+            --card-border: none;
+            --radius: 20px;
+            --shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
+            --grid-border: #1976d2;
+            --cell-bg: rgba(25, 118, 210, 0.05);
+            --cell-selected: rgba(25, 118, 210, 0.15);
+            --btn-primary: linear-gradient(135deg, #1976d2, #1565c0);
+            --btn-success: linear-gradient(135deg, #4caf50, #388e3c);
+            --btn-warning: linear-gradient(135deg, #ff9800, #f57c00);
+            --btn-danger: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
+        [data-theme="desert-rose"] {
+            --bg: linear-gradient(135deg, #2d1f24 0%, #3d282e 50%, #2d1f24 100%);
+            --bg-panel: rgba(61, 40, 46, 0.95);
+            --primary: #e8b4b8;
+            --secondary: #d4a5a5;
+            --accent: #f5e6e8;
+            --text: #fce4ec;
+            --text-dim: #f8bbd9;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 15px rgba(232, 180, 184, 0.2);
+            --card-bg: rgba(61, 40, 46, 0.98);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+            --grid-border: #e8b4b8;
+            --cell-bg: rgba(232, 180, 184, 0.08);
+            --cell-selected: rgba(232, 180, 184, 0.2);
+            --btn-primary: linear-gradient(135deg, #e8b4b8, #d4a5a5);
+            --btn-success: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+            --btn-warning: linear-gradient(135deg, #ffe0b2, #ffcc80);
+            --btn-danger: linear-gradient(135deg, #ffcdd2, #ef9a9a);
+        }
+
+        [data-theme="tech-innovation"] {
+            --bg: #161b22;
+            --bg-panel: rgba(33, 38, 45, 0.98);
+            --primary: #58a6ff;
+            --secondary: #79c0ff;
+            --accent: #ffffff;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 0 15px rgba(88, 166, 255, 0.3);
+            --card-bg: rgba(33, 38, 45, 0.99);
+            --card-border: 1px solid #30363d;
+            --radius: 6px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --grid-border: #58a6ff;
+            --cell-bg: rgba(88, 166, 255, 0.05);
+            --cell-selected: rgba(88, 166, 255, 0.15);
+            --btn-primary: #58a6ff;
+            --btn-success: #3fb950;
+            --btn-warning: #d29922;
+            --btn-danger: #f85149;
+        }
+
+        [data-theme="botanical-garden"] {
+            --bg: linear-gradient(145deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);
+            --bg-panel: rgba(46, 125, 50, 0.95);
+            --primary: #ffeb3b;
+            --secondary: #ff9800;
+            --accent: #fffde7;
+            --text: #f1f8e9;
+            --text-dim: #c5e1a5;
+            --font-display: 'Noto Sans SC', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 15px rgba(255, 235, 59, 0.25);
+            --card-bg: rgba(46, 125, 50, 0.98);
+            --card-border: none;
+            --radius: 20px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+            --grid-border: #ffeb3b;
+            --cell-bg: rgba(255, 235, 59, 0.1);
+            --cell-selected: rgba(255, 235, 59, 0.25);
+            --btn-primary: linear-gradient(135deg, #ffeb3b, #fdd835);
+            --btn-success: linear-gradient(135deg, #81c784, #66bb6a);
+            --btn-warning: linear-gradient(135deg, #ffb74d, #ffa726);
+            --btn-danger: linear-gradient(135deg, #e57373, #ef5350);
+        }
+
+        [data-theme="midnight-galaxy"] {
+            --bg: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --bg-panel: rgba(48, 43, 99, 0.9);
+            --primary: #b39ddb;
+            --secondary: #9575cd;
+            --accent: #e1bee7;
+            --text: #ede7f6;
+            --text-dim: #b39ddb;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 20px rgba(179, 157, 219, 0.3);
+            --card-bg: rgba(48, 43, 99, 0.95);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --grid-border: #b39ddb;
+            --cell-bg: rgba(179, 157, 219, 0.08);
+            --cell-selected: rgba(179, 157, 219, 0.2);
+            --btn-primary: linear-gradient(135deg, #b39ddb, #9575cd);
+            --btn-success: linear-gradient(135deg, #c5e1a5, #aed581);
+            --btn-warning: linear-gradient(135deg, #ffe082, #ffd54f);
+            --btn-danger: linear-gradient(135deg, #ef9a9a, #e57373);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: var(--font-mono);
+            background: var(--bg);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            color: var(--text);
+            transition: all 0.5s ease;
         }
-        
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: var(--card-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            padding: 10px 16px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary);
+        }
+
         .container {
-            background: #ffffff;
-            border-radius: 16px;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: var(--card-border);
             padding: 24px;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
+            box-shadow: var(--shadow);
             max-width: 720px;
             width: 100%;
             display: flex;
             flex-direction: column;
+            backdrop-filter: blur(10px);
         }
-        
+
         .game-header {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            text-align: center;
         }
+
         .game-header h1 {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #1a1a2e;
-            margin-bottom: 2px;
-            font-size: 1.6em;
+            font-family: var(--font-display);
+            color: var(--primary);
+            font-size: 1.8em;
             font-weight: 700;
             letter-spacing: 2px;
+            text-shadow: var(--glow-primary);
+            margin-bottom: 4px;
         }
-        .game-header h1::before {
-            content: '';
-            display: block;
-            width: 4px;
-            height: 1.2em;
-            background: linear-gradient(180deg, #0f3460, #e94560);
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
+
         .game-header .subtitle {
-            text-align: center;
-            color: #999;
-            font-size: 0.85em;
+            color: var(--text-dim);
+            font-size: 0.9em;
         }
-        
+
         .main-layout {
             display: grid;
             grid-template-columns: auto 1fr;
             grid-template-areas:
                 "board ctrls"
                 "board info";
-            gap: 12px 24px;
+            gap: 16px 24px;
         }
+
         .game-left {
             grid-area: board;
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 16px;
         }
+
         .game-controls {
             grid-area: ctrls;
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
+
         .game-info {
             grid-area: info;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        
+
         .difficulty-selector {
             display: flex;
-            gap: 6px;
-            justify-content: center;
-        }
-        
-        .difficulty-btn {
-            padding: 6px 14px;
-            border: 2px solid #0f3460;
-            background: transparent;
-            color: #0f3460;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 0.85em;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-        
-        .difficulty-btn:hover {
-            background: rgba(15, 52, 96, 0.1);
-        }
-        
-        .difficulty-btn.active {
-            background: #0f3460;
-            color: white;
-        }
-        
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        
-        .btn {
-            padding: 8px 12px;
-            border: none;
+
+        .difficulty-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.85em;
             font-weight: 600;
             transition: all 0.3s ease;
+            font-family: var(--font-mono);
+        }
+
+        .difficulty-btn:hover {
+            background: var(--primary);
+            color: var(--bg-panel);
+            box-shadow: var(--glow-primary);
+        }
+
+        .difficulty-btn.active {
+            background: var(--primary);
+            color: var(--bg-panel);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            white-space: nowrap;
+            gap: 6px;
+            font-family: var(--font-mono);
+            color: var(--bg-panel);
         }
-        
+
         .btn-primary {
-            background: linear-gradient(135deg, #1a1a2e, #0f3460);
-            color: white;
-            box-shadow: 0 4px 15px rgba(15, 52, 96, 0.3);
+            background: var(--btn-primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(15, 52, 96, 0.6);
+            box-shadow: var(--glow-primary);
         }
-        
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-        
+
         .btn-success {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
-            color: white;
-            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+            background: var(--btn-success);
         }
-        
+
         .btn-success:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
+            filter: brightness(1.1);
         }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            color: white;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-        }
-        
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
-        }
-        
+
         .btn-warning {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+            background: var(--btn-warning);
         }
-        
+
         .btn-warning:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.6);
+            filter: brightness(1.1);
         }
-        
+
+        .btn-secondary {
+            background: var(--bg-panel);
+            border: var(--card-border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: var(--bg-panel);
+        }
+
         .grid-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 10px;
         }
-        
+
         table {
             border-collapse: collapse;
-            border: 3px solid #1a1a2e;
+            border: 3px solid var(--grid-border);
+            border-radius: var(--radius);
+            overflow: hidden;
         }
-        
+
         td {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             text-align: center;
             vertical-align: middle;
-            border: 1px solid #d0d0d0;
+            border: 1px solid rgba(128,128,128,0.3);
             padding: 0;
+            background: var(--cell-bg);
         }
-        
-        td:nth-child(3),
-        td:nth-child(6) {
-            border-right: 3px solid #1a1a2e;
+
+        td:nth-child(3), td:nth-child(6) {
+            border-right: 3px solid var(--grid-border);
         }
-        
-        tr:nth-child(3) td,
-        tr:nth-child(6) td {
-            border-bottom: 3px solid #1a1a2e;
+
+        tr:nth-child(3) td, tr:nth-child(6) td {
+            border-bottom: 3px solid var(--grid-border);
         }
-        
+
         .cell-input {
             width: 100%;
             height: 100%;
             border: none;
             text-align: center;
-            font-size: 1.25em;
-            font-weight: 600;
+            font-size: 1.3em;
+            font-weight: 700;
             background: transparent;
             outline: none;
-            color: #1a1a2e;
-            caret-color: #0f3460;
+            color: var(--text);
+            font-family: var(--font-mono);
+            caret-color: var(--primary);
         }
-        
+
         .cell-input:focus {
-            background: rgba(15, 52, 96, 0.08);
+            background: var(--cell-selected);
         }
-        
+
         .cell-input.given {
-            color: #333;
-            font-weight: 700;
+            color: var(--primary);
+            font-weight: 800;
         }
-        
+
         .cell-input.user {
-            color: #0f3460;
+            color: var(--secondary);
         }
-        
+
         .cell-input.error {
-            color: #e74c3c;
-            background: rgba(231, 76, 60, 0.1);
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.15);
         }
-        
+
         .cell-input.correct {
-            color: #27ae60;
+            color: #44ff44;
         }
-        
+
         .cell-input.hint {
-            color: #f39c12;
             animation: hintPulse 0.5s ease-in-out;
         }
-        
-        .cell-input.same-number {
-            background: rgba(15, 52, 96, 0.06);
-        }
-        
-        .cell-input.related {
-            background: rgba(15, 52, 96, 0.04);
-        }
-        
+
         @keyframes hintPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.15); }
         }
-        
+
         .number-pad {
             display: grid;
-            grid-template-columns: repeat(5, auto);
-            gap: 6px;
-            justify-content: center;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 280px;
         }
-        
+
         .num-btn {
-            width: 38px;
-            height: 38px;
-            border: 2px solid #0f3460;
-            background: white;
-            color: #0f3460;
-            border-radius: 10px;
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid var(--primary);
+            background: var(--card-bg);
+            color: var(--primary);
+            border-radius: var(--radius);
             cursor: pointer;
-            font-size: 1.1em;
+            font-size: 1.2em;
             font-weight: 700;
             transition: all 0.2s ease;
+            font-family: var(--font-mono);
         }
-        
+
         .num-btn:hover {
-            background: #0f3460;
-            color: white;
-            transform: scale(1.1);
+            background: var(--primary);
+            color: var(--bg-panel);
+            transform: scale(1.05);
+            box-shadow: var(--glow-primary);
         }
-        
+
         .num-btn:active {
             transform: scale(0.95);
         }
-        
+
         .erase-btn {
-            border-color: #e74c3c;
-            color: #e74c3c;
-            font-size: 0.85em;
+            border-color: var(--btn-danger);
+            color: #ff4444;
+            font-size: 1em;
         }
-        
+
         .erase-btn:hover {
-            background: #e74c3c;
+            background: #ff4444;
             color: white;
         }
-        
+
         .info-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 12px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            font-size: 0.85em;
+            padding: 12px 16px;
+            background: var(--bg-panel);
+            border-radius: var(--radius);
+            border: var(--card-border);
+            font-size: 0.9em;
+            flex-wrap: wrap;
+            gap: 8px;
         }
-        
+
         .timer {
-            color: #0f3460;
+            color: var(--primary);
             font-weight: 700;
             font-size: 1.1em;
         }
-        
+
         .mistakes {
-            color: #e74c3c;
+            color: #ff6b6b;
             font-weight: 600;
         }
-        
+
         .score {
-            color: #27ae60;
+            color: #4ade80;
             font-weight: 600;
         }
-        
+
         .message {
             text-align: center;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: var(--radius);
             font-weight: 600;
-            font-size: 0.9em;
-            min-height: 44px;
+            font-size: 0.95em;
+            min-height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            border: var(--card-border);
         }
-        
+
         .message.success {
-            background: rgba(39, 174, 96, 0.15);
-            color: #27ae60;
+            background: rgba(74, 222, 128, 0.15);
+            color: #4ade80;
         }
-        
+
         .message.error-msg {
-            background: rgba(231, 76, 60, 0.15);
-            color: #e74c3c;
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
         }
-        
+
         .message.info {
-            background: rgba(15, 52, 96, 0.1);
-            color: #0f3460;
+            background: var(--cell-bg);
+            color: var(--primary);
         }
-        
-        .pencil-marks {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            width: 100%;
-            height: 100%;
-            font-size: 0.55em;
-            color: #888;
-            font-weight: 400;
-        }
-        
-        .pencil-mark {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
+
         @media (max-width: 768px) {
             .container {
-                max-width: 480px;
-                padding: 20px;
+                max-width: 100%;
+                padding: 16px;
             }
-            
+
             .main-layout {
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
+                gap: 16px;
             }
-            .game-controls {
-                order: -1;
-            }
-            .game-left {
-                order: 0;
-            }
-            .game-info {
-                order: 1;
-            }
-            
-            .game-controls, .game-info {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            .controls {
-                display: flex;
-                gap: 8px;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
-            .number-pad {
-                display: flex;
-                gap: 6px;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
+
             td {
                 width: 40px;
                 height: 40px;
             }
+
             .cell-input {
-                font-size: 1.15em;
+                font-size: 1.1em;
             }
+
+            .number-pad {
+                max-width: 320px;
+            }
+
             .num-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 1em;
+                font-size: 1.1em;
+            }
+
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .btn {
+                padding: 12px;
+                font-size: 0.8em;
+            }
+
+            .difficulty-selector {
+                gap: 6px;
+            }
+
+            .difficulty-btn {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+
+            .info-bar {
+                font-size: 0.85em;
+                padding: 10px 12px;
             }
         }
-        
+
         @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .back-btn {
+                padding: 8px 12px;
+                font-size: 0.85em;
+            }
+
             .container {
                 padding: 12px;
             }
-            
+
+            .game-header h1 {
+                font-size: 1.5em;
+            }
+
             td {
                 width: 34px;
                 height: 34px;
             }
+
             .cell-input {
                 font-size: 1em;
             }
-            .num-btn {
-                width: 30px;
-                height: 30px;
-                font-size: 0.9em;
-            }
-            .game-header h1 {
-                font-size: 1.3em;
-            }
-            .difficulty-btn {
-                padding: 5px 10px;
-                font-size: 0.75em;
-            }
-            .btn {
-                padding: 6px 12px;
-                font-size: 0.75em;
-            }
+
             .number-pad {
-                gap: 4px;
-            }
-            .controls {
                 gap: 6px;
             }
-            .game-controls, .game-info {
-                gap: 8px;
+
+            .num-btn {
+                font-size: 1em;
+            }
+
+            .btn {
+                padding: 10px 8px;
+                font-size: 0.75em;
             }
         }
-        
+
         @media (max-width: 360px) {
-            .container {
-                padding: 10px;
-            }
-            
             td {
-                width: 28px;
-                height: 28px;
+                width: 30px;
+                height: 30px;
             }
+
             .cell-input {
-                font-size: 0.85em;
+                font-size: 0.9em;
             }
+
             .num-btn {
-                width: 26px;
-                height: 26px;
-                font-size: 0.8em;
-                border-radius: 8px;
-            }
-            .game-header h1 {
-                font-size: 1.2em;
-            }
-            .difficulty-btn {
-                padding: 4px 8px;
-                font-size: 0.7em;
-            }
-            .btn {
-                padding: 5px 10px;
-                font-size: 0.7em;
-            }
-            .info-bar {
-                padding: 6px 8px;
-                font-size: 0.7em;
-            }
-            .number-pad {
-                gap: 3px;
-            }
-            .controls {
-                gap: 5px;
-            }
-            .game-controls, .game-info {
-                gap: 6px;
-            }
-            .main-layout {
-                gap: 8px;
+                font-size: 0.9em;
             }
         }
     </style>
 </head>
-<body>
-    <a href="index.html" class="fixed top-4 left-4 z-50 bg-white/90 hover:bg-white text-[#1a1a2e] px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+<body data-theme="cyberpunk">
+    <a href="index.html" class="back-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
         返回
     </a>
+
     <div class="container">
         <div class="game-header">
-            <h1>数独</h1>
+            <h1>SUDOKU</h1>
             <p class="subtitle">经典数字逻辑游戏</p>
         </div>
+
         <div class="main-layout">
             <div class="game-left">
                 <div class="grid-container">
@@ -554,6 +786,7 @@
                     <button class="num-btn erase-btn" data-num="0">✕</button>
                 </div>
             </div>
+
             <div class="game-controls">
                 <div class="difficulty-selector">
                     <button class="difficulty-btn active" data-difficulty="easy">简单</button>
@@ -563,15 +796,16 @@
                 </div>
                 <div class="controls">
                     <button class="btn btn-primary" id="newGameBtn">🎮 新游戏</button>
-                    <button class="btn btn-success" id="checkBtn">✅ 验证答案</button>
+                    <button class="btn btn-success" id="checkBtn">✅ 验证</button>
                     <button class="btn btn-warning" id="hintBtn">💡 提示</button>
                     <button class="btn btn-secondary" id="undoBtn">↩️ 撤销</button>
                 </div>
             </div>
+
             <div class="game-info">
                 <div class="info-bar">
                     <span class="timer">⏱ <span id="timerDisplay">00:00</span></span>
-                    <span class="mistakes">❌ 错误: <span id="mistakesCount">0</span>/3</span>
+                    <span class="mistakes">❌ <span id="mistakesCount">0</span>/3</span>
                     <span class="score">🏆 <span id="scoreDisplay">0</span></span>
                 </div>
                 <div class="message" id="messageBox"></div>
@@ -581,29 +815,32 @@
 
     <script>
         (function() {
-            let board = [];
-            let solution = [];
-            let givenCells = [];
-            let selectedRow = -1;
-            let selectedCol = -1;
-            let mistakes = 0;
-            let maxMistakes = 3;
-            let score = 0;
+            // 主题初始化
+            function getThemeFromURL() {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('theme');
+            }
+
+            const urlTheme = getThemeFromURL();
+            const savedTheme = urlTheme || localStorage.getItem('game-theme') || 'cyberpunk';
+            document.body.setAttribute('data-theme', savedTheme);
+
+            // 游戏状态
+            let board = [], solution = [], givenCells = [];
+            let selectedRow = -1, selectedCol = -1;
+            let mistakes = 0, maxMistakes = 3;
+            let score = 0, elapsedSeconds = 0;
             let timerInterval = null;
-            let elapsedSeconds = 0;
-            let gameActive = false;
-            let gameCompleted = false;
-            let undoStack = [];
-            let difficulty = 'easy';
-            let pencilMode = false;
-            
+            let gameActive = false, gameCompleted = false;
+            let undoStack = [], difficulty = 'easy';
+
             const difficultySettings = {
                 easy: { remove: 36 },
                 medium: { remove: 46 },
                 hard: { remove: 52 },
                 expert: { remove: 56 }
             };
-            
+
             function init() {
                 setupDifficultyButtons();
                 setupControlButtons();
@@ -614,7 +851,7 @@
                 startTimer();
                 setupKeyboardHandlers();
             }
-            
+
             function setupDifficultyButtons() {
                 document.querySelectorAll('.difficulty-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -626,140 +863,108 @@
                     });
                 });
             }
-            
+
             function setupControlButtons() {
                 document.getElementById('newGameBtn').addEventListener('click', () => {
                     generateNewGame();
                     resetGameState();
                 });
-                
                 document.getElementById('checkBtn').addEventListener('click', checkSolution);
                 document.getElementById('hintBtn').addEventListener('click', giveHint);
                 document.getElementById('undoBtn').addEventListener('click', undo);
             }
-            
+
             function setupNumberPad() {
                 document.querySelectorAll('.num-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const num = parseInt(this.dataset.num);
-                        if (num === 0) {
-                            eraseCell();
-                        } else {
-                            inputNumber(num);
-                        }
+                        if (num === 0) eraseCell();
+                        else inputNumber(num);
                     });
                 });
             }
-            
+
             function setupKeyboardHandlers() {
                 document.addEventListener('keydown', function(e) {
                     if (!gameActive || gameCompleted) return;
-                    
-                    if (e.key >= '1' && e.key <= '9') {
-                        inputNumber(parseInt(e.key));
-                    } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
-                        eraseCell();
-                    } else if (e.key === 'ArrowUp' && selectedRow > 0) {
-                        selectCell(selectedRow - 1, selectedCol);
-                    } else if (e.key === 'ArrowDown' && selectedRow < 8) {
-                        selectCell(selectedRow + 1, selectedCol);
-                    } else if (e.key === 'ArrowLeft' && selectedCol > 0) {
-                        selectCell(selectedRow, selectedCol - 1);
-                    } else if (e.key === 'ArrowRight' && selectedCol < 8) {
-                        selectCell(selectedRow, selectedCol + 1);
-                    } else if (e.key === 'p' || e.key === 'P') {
-                        pencilMode = !pencilMode;
-                        showMessage(pencilMode ? '📝 笔记模式：开启' : '📝 笔记模式：关闭', 'info');
-                    }
+                    if (e.key >= '1' && e.key <= '9') inputNumber(parseInt(e.key));
+                    else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') eraseCell();
+                    else if (e.key === 'ArrowUp' && selectedRow > 0) selectCell(selectedRow - 1, selectedCol);
+                    else if (e.key === 'ArrowDown' && selectedRow < 8) selectCell(selectedRow + 1, selectedCol);
+                    else if (e.key === 'ArrowLeft' && selectedCol > 0) selectCell(selectedRow, selectedCol - 1);
+                    else if (e.key === 'ArrowRight' && selectedCol < 8) selectCell(selectedRow, selectedCol + 1);
                 });
             }
-            
+
             function generateNewGame() {
                 solution = generateSolvedBoard();
                 board = JSON.parse(JSON.stringify(solution));
                 givenCells = [];
-                
-                const settings = difficultySettings[difficulty];
-                const cellsToRemove = settings.remove;
-                
+
+                const cellsToRemove = difficultySettings[difficulty].remove;
                 let positions = [];
-                for (let i = 0; i < 81; i++) {
-                    positions.push(i);
-                }
+                for (let i = 0; i < 81; i++) positions.push(i);
                 positions = shuffleArray(positions);
-                
+
                 for (let i = 0; i < cellsToRemove; i++) {
                     const pos = positions[i];
-                    const row = Math.floor(pos / 9);
-                    const col = pos % 9;
-                    board[row][col] = 0;
+                    board[Math.floor(pos / 9)][pos % 9] = 0;
                 }
-                
+
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
-                        if (board[r][c] !== 0) {
-                            givenCells.push({ row: r, col: c });
-                        }
+                        if (board[r][c] !== 0) givenCells.push({ row: r, col: c });
                     }
                 }
-                
+
                 undoStack = [];
                 renderBoard();
             }
-            
+
             function generateSolvedBoard() {
-                let board = Array.from({ length: 9 }, () => Array(9).fill(0));
-                fillBoard(board);
-                return board;
+                let b = Array.from({ length: 9 }, () => Array(9).fill(0));
+                fillBoard(b);
+                return b;
             }
-            
-            function fillBoard(board) {
-                const empty = findEmptyCell(board);
+
+            function fillBoard(b) {
+                const empty = findEmptyCell(b);
                 if (!empty) return true;
-                
                 const [row, col] = empty;
                 const numbers = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-                
                 for (const num of numbers) {
-                    if (isValidPlacement(board, row, col, num)) {
-                        board[row][col] = num;
-                        if (fillBoard(board)) return true;
-                        board[row][col] = 0;
+                    if (isValidPlacement(b, row, col, num)) {
+                        b[row][col] = num;
+                        if (fillBoard(b)) return true;
+                        b[row][col] = 0;
                     }
                 }
-                
                 return false;
             }
-            
-            function findEmptyCell(board) {
+
+            function findEmptyCell(b) {
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
-                        if (board[r][c] === 0) return [r, c];
+                        if (b[r][c] === 0) return [r, c];
                     }
                 }
                 return null;
             }
-            
-            function isValidPlacement(board, row, col, num) {
+
+            function isValidPlacement(b, row, col, num) {
                 for (let i = 0; i < 9; i++) {
-                    if (board[row][i] === num) return false;
+                    if (b[row][i] === num || b[i][col] === num) return false;
                 }
-                
-                for (let i = 0; i < 9; i++) {
-                    if (board[i][col] === num) return false;
-                }
-                
                 const boxRow = Math.floor(row / 3) * 3;
                 const boxCol = Math.floor(col / 3) * 3;
                 for (let r = boxRow; r < boxRow + 3; r++) {
                     for (let c = boxCol; c < boxCol + 3; c++) {
-                        if (board[r][c] === num) return false;
+                        if (b[r][c] === num) return false;
                     }
                 }
-                
                 return true;
             }
-            
+
             function shuffleArray(array) {
                 const arr = [...array];
                 for (let i = arr.length - 1; i > 0; i--) {
@@ -768,11 +973,10 @@
                 }
                 return arr;
             }
-            
+
             function createGrid() {
                 const table = document.getElementById('sudokuGrid');
                 table.innerHTML = '';
-                
                 for (let r = 0; r < 9; r++) {
                     const tr = document.createElement('tr');
                     for (let c = 0; c < 9; c++) {
@@ -785,109 +989,77 @@
                     table.appendChild(tr);
                 }
             }
-            
+
             function renderBoard() {
                 const table = document.getElementById('sudokuGrid');
                 const cells = table.querySelectorAll('td');
-                
                 cells.forEach(td => {
                     const r = parseInt(td.dataset.row);
                     const c = parseInt(td.dataset.col);
                     td.innerHTML = '';
-                    
                     if (board[r][c] !== 0) {
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.className = 'cell-input';
                         input.value = board[r][c];
                         input.readOnly = true;
-                        input.setAttribute('inputmode', 'none');
-                        
-                        if (isGivenCell(r, c)) {
-                            input.classList.add('given');
-                        } else {
+                        if (isGivenCell(r, c)) input.classList.add('given');
+                        else {
                             input.classList.add('user');
-                            if (board[r][c] !== solution[r][c]) {
-                                input.classList.add('error');
-                            }
+                            if (board[r][c] !== solution[r][c]) input.classList.add('error');
                         }
-                        
                         td.appendChild(input);
                     } else {
                         const input = document.createElement('input');
                         input.type = 'text';
                         input.className = 'cell-input';
                         input.readOnly = true;
-                        input.setAttribute('inputmode', 'none');
                         td.appendChild(input);
                     }
                 });
-                
                 highlightRelatedCells();
             }
-            
+
             function selectCell(row, col) {
                 if (!gameActive || gameCompleted) return;
-                
                 selectedRow = row;
                 selectedCol = col;
-                
                 const table = document.getElementById('sudokuGrid');
                 const cells = table.querySelectorAll('td');
-                
                 cells.forEach(td => {
                     td.style.background = '';
                     td.style.boxShadow = '';
                 });
-                
                 if (isGivenCell(row, col)) {
                     showMessage('⚠️ 这是预设数字，不能修改', 'info');
                     return;
                 }
-                
                 const selectedTd = table.querySelector(`td[data-row="${row}"][data-col="${col}"]`);
                 if (selectedTd) {
-                    selectedTd.style.background = 'rgba(15, 52, 96, 0.15)';
-                    selectedTd.style.boxShadow = 'inset 0 0 0 2px #0f3460';
+                    selectedTd.style.background = 'var(--cell-selected)';
+                    selectedTd.style.boxShadow = 'inset 0 0 0 2px var(--primary)';
                 }
-                
                 highlightRelatedCells();
             }
-            
+
             function highlightRelatedCells() {
                 if (selectedRow < 0 || selectedCol < 0) return;
-                
                 const table = document.getElementById('sudokuGrid');
                 const cells = table.querySelectorAll('td');
-                
                 cells.forEach(td => {
                     const r = parseInt(td.dataset.row);
                     const c = parseInt(td.dataset.col);
-                    
                     if (r === selectedRow && c === selectedCol) return;
-                    
                     let highlight = false;
-                    
-                    if (r === selectedRow || c === selectedCol) {
-                        highlight = true;
-                    }
-                    
+                    if (r === selectedRow || c === selectedCol) highlight = true;
                     const boxRow = Math.floor(selectedRow / 3) * 3;
                     const boxCol = Math.floor(selectedCol / 3) * 3;
-                    if (r >= boxRow && r < boxRow + 3 && c >= boxCol && c < boxCol + 3) {
-                        highlight = true;
-                    }
-                    
-                    if (board[selectedRow][selectedCol] !== 0 && board[r][c] === board[selectedRow][selectedCol]) {
-                        highlight = true;
-                    }
-                    
-                    if (highlight) {
-                        td.style.background = 'rgba(15, 52, 96, 0.06)';
-                    }
+                    if (r >= boxRow && r < boxRow + 3 && c >= boxCol && c < boxCol + 3) highlight = true;
+                    if (board[selectedRow][selectedCol] !== 0 && board[r][c] === board[selectedRow][selectedCol]) highlight = true;
+                    if (highlight) td.style.background = 'rgba(128,128,128,0.1)';
                 });
             }
-            
+
             function inputNumber(num) {
                 if (!gameActive || gameCompleted) return;
                 if (selectedRow < 0 || selectedCol < 0) {
@@ -898,24 +1070,15 @@
                     showMessage('⚠️ 预设数字不能修改', 'info');
                     return;
                 }
-                
-                undoStack.push({
-                    row: selectedRow,
-                    col: selectedCol,
-                    oldValue: board[selectedRow][selectedCol]
-                });
-                
+                undoStack.push({ row: selectedRow, col: selectedCol, oldValue: board[selectedRow][selectedCol] });
                 board[selectedRow][selectedCol] = num;
-                
                 if (num !== solution[selectedRow][selectedCol]) {
                     mistakes++;
                     updateMistakesDisplay();
-                    
                     if (mistakes >= maxMistakes) {
                         gameOver();
                         return;
                     }
-                    
                     showMessage('❌ 数字不正确，请重试', 'error-msg');
                 } else {
                     score += 10;
@@ -923,36 +1086,28 @@
                     showMessage('✅ 正确！', 'success');
                     setTimeout(() => showMessage('', ''), 1500);
                 }
-                
                 renderBoard();
                 selectCell(selectedRow, selectedCol);
                 checkCompletion();
             }
-            
+
             function eraseCell() {
                 if (!gameActive || gameCompleted) return;
                 if (selectedRow < 0 || selectedCol < 0) return;
                 if (isGivenCell(selectedRow, selectedCol)) return;
                 if (board[selectedRow][selectedCol] === 0) return;
-                
-                undoStack.push({
-                    row: selectedRow,
-                    col: selectedCol,
-                    oldValue: board[selectedRow][selectedCol]
-                });
-                
+                undoStack.push({ row: selectedRow, col: selectedCol, oldValue: board[selectedRow][selectedCol] });
                 board[selectedRow][selectedCol] = 0;
                 renderBoard();
                 selectCell(selectedRow, selectedCol);
             }
-            
+
             function undo() {
                 if (!gameActive || gameCompleted) return;
                 if (undoStack.length === 0) {
                     showMessage('没有可撤销的操作', 'info');
                     return;
                 }
-                
                 const lastAction = undoStack.pop();
                 board[lastAction.row][lastAction.col] = lastAction.oldValue;
                 renderBoard();
@@ -960,27 +1115,20 @@
                 showMessage('↩️ 已撤销', 'info');
                 setTimeout(() => showMessage('', ''), 1500);
             }
-            
+
             function isGivenCell(row, col) {
                 return givenCells.some(cell => cell.row === row && cell.col === col);
             }
-            
+
             function checkSolution() {
                 if (!gameActive || gameCompleted) return;
-                
-                let allFilled = true;
-                let allCorrect = true;
-                
+                let allFilled = true, allCorrect = true;
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
-                        if (board[r][c] === 0) {
-                            allFilled = false;
-                        } else if (board[r][c] !== solution[r][c]) {
-                            allCorrect = false;
-                        }
+                        if (board[r][c] === 0) allFilled = false;
+                        else if (board[r][c] !== solution[r][c]) allCorrect = false;
                     }
                 }
-                
                 if (!allFilled) {
                     showMessage('📋 还有空格未填写完成', 'info');
                     highlightErrors();
@@ -991,25 +1139,22 @@
                     completeGame();
                 }
             }
-            
+
             function highlightErrors() {
                 const table = document.getElementById('sudokuGrid');
                 const cells = table.querySelectorAll('td');
-                
                 cells.forEach(td => {
                     const r = parseInt(td.dataset.row);
                     const c = parseInt(td.dataset.col);
                     const input = td.querySelector('input');
-                    
                     if (input && !isGivenCell(r, c) && board[r][c] !== 0 && board[r][c] !== solution[r][c]) {
                         input.classList.add('error');
                     }
                 });
             }
-            
+
             function giveHint() {
                 if (!gameActive || gameCompleted) return;
-                
                 let emptyCells = [];
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
@@ -1018,24 +1163,14 @@
                         }
                     }
                 }
-                
                 if (emptyCells.length === 0) return;
-                
                 const hint = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                
-                undoStack.push({
-                    row: hint.row,
-                    col: hint.col,
-                    oldValue: board[hint.row][hint.col]
-                });
-                
+                undoStack.push({ row: hint.row, col: hint.col, oldValue: board[hint.row][hint.col] });
                 board[hint.row][hint.col] = solution[hint.row][hint.col];
                 score = Math.max(0, score - 5);
                 updateScoreDisplay();
-                
                 renderBoard();
                 selectCell(hint.row, hint.col);
-                
                 const table = document.getElementById('sudokuGrid');
                 const td = table.querySelector(`td[data-row="${hint.row}"][data-col="${hint.col}"]`);
                 const input = td ? td.querySelector('input') : null;
@@ -1043,13 +1178,11 @@
                     input.classList.add('hint');
                     setTimeout(() => input.classList.remove('hint'), 500);
                 }
-                
                 showMessage(`💡 提示：第${hint.row + 1}行第${hint.col + 1}列 = ${solution[hint.row][hint.col]}`, 'info');
                 setTimeout(() => showMessage('', ''), 2000);
-                
                 checkCompletion();
             }
-            
+
             function checkCompletion() {
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
@@ -1058,18 +1191,15 @@
                 }
                 completeGame();
             }
-            
+
             function completeGame() {
                 gameActive = false;
                 gameCompleted = true;
                 stopTimer();
-                
                 const bonusPoints = Math.max(0, 1000 - elapsedSeconds * 2);
                 score += bonusPoints;
                 updateScoreDisplay();
-                
                 showMessage(`🎉 恭喜！你完成了数独！获得 ${bonusPoints} 分奖励！总用时 ${formatTime(elapsedSeconds)}`, 'success');
-                
                 const table = document.getElementById('sudokuGrid');
                 const cells = table.querySelectorAll('td');
                 cells.forEach(td => {
@@ -1081,22 +1211,19 @@
                     }
                 });
             }
-            
+
             function gameOver() {
                 gameActive = false;
                 stopTimer();
                 showMessage('💀 游戏结束！错误次数已达上限', 'error-msg');
-                
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
-                        if (!isGivenCell(r, c)) {
-                            board[r][c] = solution[r][c];
-                        }
+                        if (!isGivenCell(r, c)) board[r][c] = solution[r][c];
                     }
                 }
                 renderBoard();
             }
-            
+
             function resetGameState() {
                 mistakes = 0;
                 score = 0;
@@ -1105,12 +1232,10 @@
                 selectedCol = -1;
                 gameActive = true;
                 gameCompleted = false;
-                
                 updateMistakesDisplay();
                 updateScoreDisplay();
                 showMessage('', '');
                 resetTimer();
-                
                 const table = document.getElementById('sudokuGrid');
                 const cells = table.querySelectorAll('td');
                 cells.forEach(td => {
@@ -1118,24 +1243,22 @@
                     td.style.boxShadow = '';
                 });
             }
-            
+
             function updateMistakesDisplay() {
                 document.getElementById('mistakesCount').textContent = mistakes;
             }
-            
+
             function updateScoreDisplay() {
                 document.getElementById('scoreDisplay').textContent = score;
             }
-            
+
             function showMessage(text, type) {
                 const msgBox = document.getElementById('messageBox');
                 msgBox.textContent = text;
                 msgBox.className = 'message';
-                if (type) {
-                    msgBox.classList.add(type);
-                }
+                if (type) msgBox.classList.add(type);
             }
-            
+
             function startTimer() {
                 stopTimer();
                 elapsedSeconds = 0;
@@ -1145,31 +1268,31 @@
                     updateTimerDisplay();
                 }, 1000);
             }
-            
+
             function stopTimer() {
                 if (timerInterval) {
                     clearInterval(timerInterval);
                     timerInterval = null;
                 }
             }
-            
+
             function resetTimer() {
                 stopTimer();
                 elapsedSeconds = 0;
                 updateTimerDisplay();
                 startTimer();
             }
-            
+
             function updateTimerDisplay() {
                 document.getElementById('timerDisplay').textContent = formatTime(elapsedSeconds);
             }
-            
+
             function formatTime(seconds) {
                 const mins = Math.floor(seconds / 60);
                 const secs = seconds % 60;
                 return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
             }
-            
+
             init();
         })();
     </script>
