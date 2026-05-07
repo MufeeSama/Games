@@ -823,7 +823,7 @@
                     <button class="num-btn" data-num="7">7</button>
                     <button class="num-btn" data-num="8">8</button>
                     <button class="num-btn" data-num="9">9</button>
-                    <button class="num-btn erase-btn" data-num="0">✕</button>
+                    <button class="num-btn erase-btn" data-num="0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                 </div>
             </div>
 
@@ -835,18 +835,18 @@
                     <button class="difficulty-btn" data-difficulty="expert">专家</button>
                 </div>
                 <div class="controls">
-                    <button class="btn btn-primary" id="newGameBtn">🎮 新游戏</button>
-                    <button class="btn btn-success" id="checkBtn">✅ 验证</button>
-                    <button class="btn btn-warning" id="hintBtn">💡 提示</button>
-                    <button class="btn btn-secondary" id="undoBtn">↩️ 撤销</button>
+                    <button class="btn btn-primary" id="newGameBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M8 10v4"/><circle cx="16" cy="12" r="1.5"/><circle cx="19" cy="10" r="1.5"/></svg> 新游戏</button>
+                    <button class="btn btn-success" id="checkBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> 验证</button>
+                    <button class="btn btn-warning" id="hintBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> 提示</button>
+                    <button class="btn btn-secondary" id="undoBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg> 撤销</button>
                 </div>
             </div>
 
             <div class="game-info">
                 <div class="info-bar">
-                    <span class="timer">⏱ <span id="timerDisplay">00:00</span></span>
-                    <span class="mistakes">❌ <span id="mistakesCount">0</span>/3</span>
-                    <span class="score">🏆 <span id="scoreDisplay">0</span></span>
+                    <span class="timer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span id="timerDisplay">00:00</span></span>
+                    <span class="mistakes"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> <span id="mistakesCount">0</span>/3</span>
+                    <span class="score"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <span id="scoreDisplay">0</span></span>
                 </div>
                 <div class="message" id="messageBox"></div>
             </div>
@@ -1071,7 +1071,7 @@
                     td.style.boxShadow = '';
                 });
                 if (isGivenCell(row, col)) {
-                    showMessage('⚠️ 这是预设数字，不能修改', 'info');
+                    showMessage('[!] 这是预设数字，不能修改', 'info');
                     return;
                 }
                 const selectedTd = table.querySelector(`td[data-row="${row}"][data-col="${col}"]`);
@@ -1107,7 +1107,7 @@
                     return;
                 }
                 if (isGivenCell(selectedRow, selectedCol)) {
-                    showMessage('⚠️ 预设数字不能修改', 'info');
+                    showMessage('[!] 预设数字不能修改', 'info');
                     return;
                 }
                 undoStack.push({ row: selectedRow, col: selectedCol, oldValue: board[selectedRow][selectedCol] });
@@ -1119,11 +1119,11 @@
                         gameOver();
                         return;
                     }
-                    showMessage('❌ 数字不正确，请重试', 'error-msg');
+                    showMessage('[X] 数字不正确，请重试', 'error-msg');
                 } else {
                     score += 10;
                     updateScoreDisplay();
-                    showMessage('✅ 正确！', 'success');
+                    showMessage('[OK] 正确！', 'success');
                     setTimeout(() => showMessage('', ''), 1500);
                 }
                 renderBoard();
@@ -1170,10 +1170,10 @@
                     }
                 }
                 if (!allFilled) {
-                    showMessage('📋 还有空格未填写完成', 'info');
+                    showMessage('[...] 还有空格未填写完成', 'info');
                     highlightErrors();
                 } else if (!allCorrect) {
-                    showMessage('❌ 存在错误，请检查红色标记的格子', 'error-msg');
+                    showMessage('[X] 存在错误，请检查红色标记的格子', 'error-msg');
                     highlightErrors();
                 } else {
                     completeGame();
@@ -1218,7 +1218,7 @@
                     input.classList.add('hint');
                     setTimeout(() => input.classList.remove('hint'), 500);
                 }
-                showMessage(`💡 提示：第${hint.row + 1}行第${hint.col + 1}列 = ${solution[hint.row][hint.col]}`, 'info');
+                showMessage(`[i] 提示：第${hint.row + 1}行第${hint.col + 1}列 = ${solution[hint.row][hint.col]}`, 'info');
                 setTimeout(() => showMessage('', ''), 2000);
                 checkCompletion();
             }
@@ -1239,7 +1239,7 @@
                 const bonusPoints = Math.max(0, 1000 - elapsedSeconds * 2);
                 score += bonusPoints;
                 updateScoreDisplay();
-                showMessage(`🎉 恭喜！你完成了数独！获得 ${bonusPoints} 分奖励！总用时 ${formatTime(elapsedSeconds)}`, 'success');
+                showMessage(`[WIN] 恭喜！你完成了数独！获得 ${bonusPoints} 分奖励！总用时 ${formatTime(elapsedSeconds)}`, 'success');
                 const table = document.getElementById('sudokuGrid');
                 const cells = table.querySelectorAll('td');
                 cells.forEach(td => {
@@ -1255,7 +1255,7 @@
             function gameOver() {
                 gameActive = false;
                 stopTimer();
-                showMessage('💀 游戏结束！错误次数已达上限', 'error-msg');
+                showMessage('[GAME OVER] 游戏结束！错误次数已达上限', 'error-msg');
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
                         if (!isGivenCell(r, c)) board[r][c] = solution[r][c];
