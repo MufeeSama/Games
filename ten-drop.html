@@ -142,16 +142,20 @@
         /* 手机端适配 */
         @media (max-width: 768px) {
             body {
-                padding-top: 50px;
                 overflow-y: auto !important;
+                padding: 16px;
+                gap: 16px;
             }
 
             .back-btn {
-                top: 10px;
-                left: 50%;
-                transform: translateX(-50%);
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+                align-self: flex-start;
                 padding: 8px 14px;
                 font-size: 12px;
+                order: -1;
             }
 
             .game-board {
