@@ -368,7 +368,6 @@
             document.getElementById('modal-title').innerText = playerWon ? "才高八斗" : "遗憾落败";
             document.getElementById('modal-title').style.color = playerWon ? "var(--red-stamp)" : "var(--bamboo-dark)";
             document.getElementById('modal-desc').innerHTML = `${reason}<br>此番共交锋 <span class="text-2xl font-black text-[var(--red-stamp)]">${roundCount}</span> 次`;
-            document.getElementById('round-count').innerText = roundCount;
             
             modal.classList.remove('hidden');
             setTimeout(() => {
