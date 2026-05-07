@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>围小猫 - 经典益智游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f0fdf4; /* Tailwind green-50 */
+            font-family: 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            touch-action: manipulation; /* 优化移动端点击体验 */
+            overflow-x: hidden;
+        }
+
+        /* 棋盘容器 */
+        .board {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 20px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05), 0 20px 48px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 棋盘行 */
+        .board-row {
+            display: flex;
+            gap: 2px;
+        }
+
+        /* 核心点：六边形网格的奇数行向右偏移半个格子的宽度 */
+        .board-row.odd {
+            margin-left: 19px;
+        }
+
+        /* 单个六边形/圆点 */
+        .hex-cell {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #bbf7d0; /* 浅绿色通道 */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.2s ease;
+            user-select: none;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 640px) {
+            .board { gap: 4px; }
+            .board-row { gap: 4px; }
+            .hex-cell {
+                width: 44px;
+                height: 44px;
+                font-size: 28px;
+            }
+            .board-row.odd { margin-left: 24px; }
+        }
+
+        .hex-cell:hover:not(.blocked):not(.has-cat) {
+            background-color: #86efac;
+            transform: scale(1.1);
+        }
+
+        /* 障碍物样式 */
+        .hex-cell.blocked {
+            background-color: #334155; /* 深色路障 */
+            cursor: not-allowed;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.4);
+            transform: scale(0.95);
+        }
+
+        /* 小猫动画与SVG图标容器 */
+        .cat-icon {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0.5) translateY(-20px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* 模态框动画 */
+        .modal-enter {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- 顶部控制区 -->
+    <div class="mb-6 w-full max-w-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-black text-slate-800 tracking-wide flex items-center gap-2">
+                围小猫
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fb923c" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8">
+                    <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path>
+                    <circle cx="9" cy="13" r="1.5" fill="#451a03" stroke="none"></circle>
+                    <circle cx="15" cy="13" r="1.5" fill="#451a03" stroke="none"></circle>
+                    <path d="M12 15.5c-1 0-1.5-.5-1.5-.5" stroke="#451a03"></path>
+                    <path d="M12 15.5c1 0 1.5-.5 1.5-.5" stroke="#451a03"></path>
+                </svg>
+            </h1>
+            <p class="text-sm text-slate-500 mt-1 font-medium">点击浅色圆点放置路障，别让小猫跑出边缘！</p>
+        </div>
+        
+        <div class="flex items-center gap-3 bg-white p-2 rounded-xl shadow-sm border border-slate-100">
+            <select id="difficulty" class="bg-slate-50 text-slate-700 text-sm font-bold rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-green-400 cursor-pointer transition-colors">
+                <option value="easy">简单 (多路障)</option>
+                <option value="medium" selected>普通 (适中)</option>
+                <option value="hard">困难 (少路障)</option>
+                <option value="insane">深渊 (无路障)</option>
+            </select>
+            <button onclick="initGame()" class="bg-green-500 hover:bg-green-600 active:scale-95 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-md shadow-green-500/30 whitespace-nowrap">
+                重开
+            </button>
+        </div>
+    </div>
+
+    <!-- 游戏棋盘区域 -->
+    <div class="board" id="board">
+        <!-- JavaScript 将在这里生成网格 -->
+    </div>
+
+    <div class="mt-8 text-slate-400 text-xs text-center font-medium">
+        步数: <span id="steps-count" class="text-slate-600 font-bold text-base">0</span>
+    </div>
+
+    <!-- 游戏结束模态框 -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+        <div id="modal-content" class="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-xs w-[90%] transform transition-all">
+            <div id="modal-icon" class="w-20 h-20 mx-auto mb-4"></div>
+            <h2 id="modal-title" class="text-2xl font-black text-slate-800 mb-2">小猫跑掉了！</h2>
+            <p id="modal-desc" class="text-slate-500 mb-6 text-sm">你没能围住它，再试一次吧。</p>
+            <button onclick="initGame()" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg">
+                再来一局
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const ROWS = 11;
+        const COLS = 11;
+        
+        // --- SVG 矢量图常量定义 ---
+        const SVG_CAT_NORMAL = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fb923c" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-[80%] h-[80%]"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><circle cx="9" cy="13" r="1.5" fill="#451a03" stroke="none"></circle><circle cx="15" cy="13" r="1.5" fill="#451a03" stroke="none"></circle><path d="M12 15.5c-1 0-1.5-.5-1.5-.5" stroke="#451a03"></path><path d="M12 15.5c1 0 1.5-.5 1.5-.5" stroke="#451a03"></path></svg>`;
+        const SVG_CAT_CRYING_SMALL = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-[80%] h-[80%]"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><circle cx="9" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><circle cx="15" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><path d="M12 16.5c-1 0-2-.5-2-.5" stroke="#0f172a"></path><path d="M12 16.5c1 0 2-.5 2-.5" stroke="#0f172a"></path><path d="M9 14.5v2" stroke="#3b82f6" stroke-width="2"></path><circle cx="9" cy="17" r="1" fill="#3b82f6" stroke="none"></circle></svg>`;
+        const SVG_CAT_HAPPY = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fcd34d" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full drop-shadow-md"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><path d="M7 13s1-1.5 2-1.5 2 1.5 2 1.5" stroke="#451a03"></path><path d="M13 13s1-1.5 2-1.5 2 1.5 2 1.5" stroke="#451a03"></path><path d="M12 15.5c-1 0-1.5-.5-1.5-.5" stroke="#451a03"></path><path d="M12 15.5c1 0 1.5-.5 1.5-.5" stroke="#451a03"></path></svg>`;
+        const SVG_CAT_CRYING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full drop-shadow-md"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><circle cx="9" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><circle cx="15" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><path d="M12 16.5c-1 0-2-.5-2-.5" stroke="#0f172a"></path><path d="M12 16.5c1 0 2-.5 2-.5" stroke="#0f172a"></path><path d="M9 14.5v2" stroke="#3b82f6" stroke-width="2"></path><circle cx="9" cy="17" r="1" fill="#3b82f6" stroke="none"></circle></svg>`;
+
+        let catPos = { r: 5, c: 5 }; // 小猫初始在正中间
+        let blockedCells = new Set();
+        let steps = 0;
+        let isGameOver = false;
+
+        const boardEl = document.getElementById('board');
+        const stepsEl = document.getElementById('steps-count');
+        const modal = document.getElementById('modal');
+
+        // 难度对应的初始障碍数量
+        const DIFFICULTY_MAP = {
+            'easy': 15,
+            'medium': 10,
+            'hard': 5,
+            'insane': 0
+        };
+
+        // 六边形网格的邻居坐标偏移量
+        // 在偏移坐标系下，偶数行和奇数行的邻居计算方式不同
+        function getNeighbors(r, c) {
+            const evenOffsets = [[0, -1], [0, 1], [-1, -1], [-1, 0], [1, -1], [1, 0]];
+            const oddOffsets = [[0, -1], [0, 1], [-1, 0], [-1, 1], [1, 0], [1, 1]];
+            
+            const offsets = (r % 2 === 0) ? evenOffsets : oddOffsets;
+            let neighbors = [];
+            
+            for (let [dr, dc] of offsets) {
+                let nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                    neighbors.push({ r: nr, c: nc });
+                }
+            }
+            return neighbors;
+        }
+
+        // 初始化游戏
+        function initGame() {
+            modal.classList.add('hidden');
+            document.getElementById('modal-content').classList.remove('modal-enter');
+            
+            catPos = { r: 5, c: 5 };
+            blockedCells.clear();
+            steps = 0;
+            isGameOver = false;
+            stepsEl.innerText = steps;
+
+            const difficulty = document.getElementById('difficulty').value;
+            const initialBlocks = DIFFICULTY_MAP[difficulty];
+
+            // 随机生成初始路障，避开中心小猫的位置
+            let placed = 0;
+            while (placed < initialBlocks) {
+                let r = Math.floor(Math.random() * ROWS);
+                let c = Math.floor(Math.random() * COLS);
+                let key = `${r},${c}`;
+                if ((r !== 5 || c !== 5) && !blockedCells.has(key)) {
+                    blockedCells.add(key);
+                    placed++;
+                }
+            }
+
+            renderBoard();
+        }
+
+        // 渲染棋盘
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            
+            for (let r = 0; r < ROWS; r++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = `board-row ${r % 2 !== 0 ? 'odd' : ''}`;
+                
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'hex-cell';
+                    cell.id = `cell-${r}-${c}`;
+                    
+                    if (blockedCells.has(`${r},${c}`)) {
+                        cell.classList.add('blocked');
+                    } else if (r === catPos.r && c === catPos.c) {
+                        cell.classList.add('has-cat');
+                        cell.innerHTML = `<div class="cat-icon">${SVG_CAT_NORMAL}</div>`;
+                    }
+
+                    cell.addEventListener('click', () => handleCellClick(r, c));
+                    rowEl.appendChild(cell);
+                }
+                boardEl.appendChild(rowEl);
+            }
+        }
+
+        // 处理玩家点击
+        function handleCellClick(r, c) {
+            if (isGameOver) return;
+            
+            let key = `${r},${c}`;
+            
+            // 如果点击的是路障或者是小猫的位置，无效
+            if (blockedCells.has(key) || (r === catPos.r && c === catPos.c)) {
+                return;
+            }
+
+            // 1. 玩家放置路障
+            blockedCells.add(key);
+            steps++;
+            stepsEl.innerText = steps;
+            
+            // 局部更新被点击的格子
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            cell.classList.add('blocked');
+
+            // 2. 小猫移动
+            moveCat();
+        }
+
+        // 判断是否到达边缘
+        function isEdge(r, c) {
+            return r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1;
+        }
+
+        // ==========================================
+        // 小猫的核心寻路 AI (BFS 广度优先搜索)
+        // 发现被彻底包围则立即判决玩家获胜
+        // ==========================================
+        function moveCat() {
+            // 如果已经在边缘，游戏结束 (理论上已经被拦截)
+            if (isEdge(catPos.r, catPos.c)) {
+                isGameOver = true;
+                endGame(false);
+                return;
+            }
+
+            // 采用多源逆向 BFS：从所有边缘空地向中心搜索最短路径
+            let distances = Array(ROWS).fill(0).map(() => Array(COLS).fill(Infinity));
+            let queue = [];
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (isEdge(r, c) && !blockedCells.has(`${r},${c}`)) {
+                        distances[r][c] = 0;
+                        queue.push({ r, c });
+                    }
+                }
+            }
+
+            let head = 0;
+            while (head < queue.length) {
+                let curr = queue[head++];
+                let d = distances[curr.r][curr.c];
+                
+                let neighbors = getNeighbors(curr.r, curr.c);
+                for (let n of neighbors) {
+                    if (!blockedCells.has(`${n.r},${n.c}`) && distances[n.r][n.c] === Infinity) {
+                        distances[n.r][n.c] = d + 1;
+                        queue.push(n);
+                    }
+                }
+            }
+
+            // 获取小猫当前可走的邻居
+            let catNeighbors = getNeighbors(catPos.r, catPos.c).filter(n => !blockedCells.has(`${n.r},${n.c}`));
+            
+            // 如果四周被完全封死（没有邻居），玩家赢了
+            if (catNeighbors.length === 0) {
+                isGameOver = true;
+                endGame(true);
+                return;
+            }
+
+            let bestMove = null;
+            let minD = Infinity;
+            let possibleMoves = [];
+
+            // 寻找距离边缘步数最少的格子
+            for (let n of catNeighbors) {
+                let d = distances[n.r][n.c];
+                if (d < minD) {
+                    minD = d;
+                    possibleMoves = [n];
+                } else if (d === minD) {
+                    possibleMoves.push(n); // 收集相同最短距离的备选项
+                }
+            }
+
+            // 如果 minD 是 Infinity，说明小猫已经被困死在闭环中了，无路可达边缘
+            if (minD < Infinity) {
+                // 有出路：在最短路径中随机选一条
+                bestMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                updateCatPosition(bestMove.r, bestMove.c);
+                
+                // 走完之后立刻检查是否已经到了边缘
+                if (isEdge(bestMove.r, bestMove.c)) {
+                    isGameOver = true; // 立刻锁定防止延迟期间点击
+                    setTimeout(() => endGame(false), 300); // 留出一点动画时间
+                }
+            } else {
+                // 彻底被围死：小猫投降，立即触发玩家获胜
+                isGameOver = true; // 锁定游戏不让继续点击
+                const catCell = document.getElementById(`cell-${catPos.r}-${catPos.c}`);
+                catCell.innerHTML = `<div class="cat-icon">${SVG_CAT_CRYING_SMALL}</div>`; // 换上哭泣SVG
+                
+                setTimeout(() => endGame(true), 300);
+            }
+        }
+
+        // 更新小猫在 DOM 中的位置
+        function updateCatPosition(newR, newC) {
+            // 清除旧位置
+            const oldCell = document.getElementById(`cell-${catPos.r}-${catPos.c}`);
+            oldCell.classList.remove('has-cat');
+            oldCell.innerHTML = '';
+
+            // 移动到新位置
+            catPos = { r: newR, c: newC };
+            const newCell = document.getElementById(`cell-${newR}-${newC}`);
+            newCell.classList.add('has-cat');
+            newCell.innerHTML = `<div class="cat-icon">${SVG_CAT_NORMAL}</div>`;
+        }
+
+        // 游戏结束处理
+        function endGame(playerWon) {
+            isGameOver = true;
+            
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const icon = document.getElementById('modal-icon');
+
+            if (playerWon) {
+                icon.innerHTML = SVG_CAT_HAPPY;
+                title.innerText = "你赢了！";
+                title.className = "text-3xl font-black text-green-500 mb-2";
+                desc.innerHTML = `太棒了！你仅用了 <b class="text-slate-700">${steps}</b> 步就成功围住了小猫。`;
+            } else {
+                icon.innerHTML = SVG_CAT_CRYING;
+                title.innerText = "小猫跑掉了！";
+                title.className = "text-2xl font-black text-slate-800 mb-2";
+                desc.innerHTML = `你没能围住它，再试一次吧。`;
+            }
+
+            modal.classList.remove('hidden');
+            document.getElementById('modal-content').classList.add('modal-enter');
+        }
+
+        // 启动游戏
+        initGame();
+    </script>
+</body>
+</html>
