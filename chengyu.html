@@ -117,6 +117,21 @@
             background-color: transparent;
             color: var(--bamboo-dark);
         }
+
+        /* 手机端适配 */
+        @media (max-width: 640px) {
+            .scroll-container {
+                height: 280px;
+            }
+            .bamboo-slip {
+                min-width: 40px;
+                height: 220px;
+            }
+            .slip-text {
+                font-size: 20px;
+                letter-spacing: 4px;
+            }
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen w-screen relative">
