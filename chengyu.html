@@ -123,57 +123,73 @@
         @media (max-width: 640px) {
             body {
                 flex-direction: column;
-                padding: 12px;
-                gap: 12px;
+                padding: 8px;
+                gap: 8px;
             }
 
             .scroll-container {
                 width: 100%;
-                max-width: 320px;
-                max-height: 50vh;
+                max-width: none;
+                max-height: calc(100vh - 200px);
+                padding: 12px 0;
             }
 
             .bamboo-slip {
-                min-height: 40px;
-                width: 100%;
+                min-height: 44px;
+                width: calc(100% - 20px);
                 max-width: 280px;
             }
 
             .slip-text {
-                font-size: 20px;
-                letter-spacing: 4px;
+                font-size: 18px;
+                letter-spacing: 3px;
             }
+
+            .bamboo-slip::before { left: 12px; }
+            .bamboo-slip::after { right: 12px; }
 
             /* 顶部状态栏调整 */
             .h-20 {
                 height: auto;
-                padding: 12px;
+                padding: 8px 12px;
                 flex-wrap: wrap;
                 gap: 8px;
             }
 
             .h-20 h1 {
-                font-size: 1.5rem;
+                font-size: 1.4rem;
+                letter-spacing: 0.1em;
+            }
+
+            #timer-display {
+                font-size: 1.8rem;
             }
 
             /* 底部操作区调整 */
             .h-24 {
                 height: auto;
                 padding: 12px;
+                gap: 8px;
             }
 
             #last-char-hint {
-                font-size: 1rem;
+                font-size: 0.9rem;
             }
 
             #idiom-input {
-                font-size: 1.2rem;
-                height: 40px;
+                font-size: 1.1rem;
+                height: 44px;
             }
 
             #submit-btn {
-                height: 40px;
-                padding: 0 16px;
+                height: 44px;
+                padding: 0 14px;
+                font-size: 1rem;
+            }
+
+            /* 竹简连线调整 */
+            .bamboo-line {
+                display: none;
             }
         }
     </style>
@@ -202,8 +218,8 @@
     <!-- 游戏主画卷 (纵向滚动竹简) -->
     <div class="flex-1 flex flex-row justify-center relative gap-4">
         <!-- 竹简连线背景 -->
-        <div class="absolute left-1/2 -ml-[135px] h-full border-l border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
-        <div class="absolute left-1/2 ml-[135px] h-full border-l border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
+        <div class="bamboo-line absolute left-1/2 -ml-[135px] h-full border-l border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
+        <div class="bamboo-line absolute left-1/2 ml-[135px] h-full border-l border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
 
         <div id="scroll-container" class="scroll-container z-10">
             <!-- 竹简通过JS动态插入 -->
