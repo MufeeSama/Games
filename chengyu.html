@@ -27,41 +27,42 @@
 
         /* 游戏主画卷 */
         .scroll-container {
-            background: linear-gradient(to right, #e2d1b3, #ebdfc8, #e2d1b3);
+            background: linear-gradient(to bottom, #e2d1b3, #ebdfc8, #e2d1b3);
             box-shadow: inset 0 0 20px rgba(140, 98, 57, 0.2), 0 10px 30px rgba(0,0,0,0.1);
-            border-top: 4px solid var(--bamboo-dark);
-            border-bottom: 4px solid var(--bamboo-dark);
-            height: 380px;
+            border-left: 4px solid var(--bamboo-dark);
+            border-right: 4px solid var(--bamboo-dark);
+            width: 380px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            padding: 0 20px;
-            overflow-x: auto;
+            padding: 20px 0;
+            overflow-y: auto;
             scroll-behavior: smooth;
         }
 
         /* 隐藏滚动条但保留功能 */
-        .scroll-container::-webkit-scrollbar { height: 8px; }
+        .scroll-container::-webkit-scrollbar { width: 8px; }
         .scroll-container::-webkit-scrollbar-track { background: transparent; }
         .scroll-container::-webkit-scrollbar-thumb { background: var(--bamboo-border); border-radius: 4px; }
 
         /* 单片竹简样式 */
         .bamboo-slip {
-            min-width: 50px;
-            height: 300px;
-            background: linear-gradient(to right, #dec084, #e6c88b, #d4b473);
-            border-left: 1px solid rgba(255,255,255,0.4);
-            border-right: 2px solid var(--bamboo-border);
-            margin: 0 2px;
-            border-radius: 2px 2px 4px 4px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1), inset 0 0 10px rgba(140, 98, 57, 0.1);
+            min-height: 50px;
+            width: 300px;
+            background: linear-gradient(to bottom, #dec084, #e6c88b, #d4b473);
+            border-top: 1px solid rgba(255,255,255,0.4);
+            border-bottom: 2px solid var(--bamboo-border);
+            margin: 2px 0;
+            border-radius: 2px 4px 4px 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1), inset 0 0 10px rgba(140, 98, 57, 0.1);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
             position: relative;
             animation: slipDrop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
             opacity: 0;
-            transform: translateY(-20px);
+            transform: translateX(-20px);
         }
 
         /* 竹简顶部的穿绳孔 */
@@ -73,13 +74,13 @@
             border-radius: 50%;
             box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
         }
-        .bamboo-slip::before { top: 20px; }
-        .bamboo-slip::after { bottom: 20px; }
+        .bamboo-slip::before { left: 20px; top: 50%; transform: translateY(-50%); }
+        .bamboo-slip::after { right: 20px; top: 50%; transform: translateY(-50%); }
 
-        /* 竹简文字竖排 */
+        /* 竹简文字横排 */
         .slip-text {
-            writing-mode: vertical-rl;
-            text-orientation: upright;
+            writing-mode: horizontal-tb;
+            text-orientation: mixed;
             color: var(--ink);
             font-size: 26px;
             font-weight: 900;
@@ -120,16 +121,59 @@
 
         /* 手机端适配 */
         @media (max-width: 640px) {
+            body {
+                flex-direction: column;
+                padding: 12px;
+                gap: 12px;
+            }
+
             .scroll-container {
-                height: 280px;
+                width: 100%;
+                max-width: 320px;
+                max-height: 50vh;
             }
+
             .bamboo-slip {
-                min-width: 40px;
-                height: 220px;
+                min-height: 40px;
+                width: 100%;
+                max-width: 280px;
             }
+
             .slip-text {
                 font-size: 20px;
                 letter-spacing: 4px;
+            }
+
+            /* 顶部状态栏调整 */
+            .h-20 {
+                height: auto;
+                padding: 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .h-20 h1 {
+                font-size: 1.5rem;
+            }
+
+            /* 底部操作区调整 */
+            .h-24 {
+                height: auto;
+                padding: 12px;
+            }
+
+            #last-char-hint {
+                font-size: 1rem;
+            }
+
+            #idiom-input {
+                font-size: 1.2rem;
+                height: 40px;
+            }
+
+            #submit-btn {
+                height: 40px;
+                padding: 0 16px;
             }
         }
     </style>
@@ -155,12 +199,12 @@
         </div>
     </div>
 
-    <!-- 游戏主画卷 (横向滚动竹简) -->
-    <div class="flex-1 flex flex-col justify-center relative">
+    <!-- 游戏主画卷 (纵向滚动竹简) -->
+    <div class="flex-1 flex flex-row justify-center relative gap-4">
         <!-- 竹简连线背景 -->
-        <div class="absolute top-1/2 -mt-[135px] w-full border-t border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
-        <div class="absolute top-1/2 mt-[135px] w-full border-t border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
-        
+        <div class="absolute left-1/2 -ml-[135px] h-full border-l border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
+        <div class="absolute left-1/2 ml-[135px] h-full border-l border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
+
         <div id="scroll-container" class="scroll-container z-10">
             <!-- 竹简通过JS动态插入 -->
         </div>
@@ -267,10 +311,10 @@
 
             scrollContainer.appendChild(slip);
             
-            // 自动向右平滑滚动
+            // 自动向下平滑滚动
             setTimeout(() => {
                 scrollContainer.scrollTo({
-                    left: scrollContainer.scrollWidth,
+                    top: scrollContainer.scrollHeight,
                     behavior: 'smooth'
                 });
             }, 100);
