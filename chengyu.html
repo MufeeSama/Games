@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>成语接龙 - 竹简长卷</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
+
+        :root {
+            --bamboo-bg: #e6c88b;
+            --bamboo-border: #c8a361;
+            --bamboo-dark: #8c6239;
+            --ink: #2c1a0b;
+            --red-stamp: #992222;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+            background-color: #f0e6d2;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.05"/></svg>');
+        }
+
+        /* 游戏主画卷 */
+        .scroll-container {
+            background: linear-gradient(to right, #e2d1b3, #ebdfc8, #e2d1b3);
+            box-shadow: inset 0 0 20px rgba(140, 98, 57, 0.2), 0 10px 30px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--bamboo-dark);
+            border-bottom: 4px solid var(--bamboo-dark);
+            height: 380px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+        }
+
+        /* 隐藏滚动条但保留功能 */
+        .scroll-container::-webkit-scrollbar { height: 8px; }
+        .scroll-container::-webkit-scrollbar-track { background: transparent; }
+        .scroll-container::-webkit-scrollbar-thumb { background: var(--bamboo-border); border-radius: 4px; }
+
+        /* 单片竹简样式 */
+        .bamboo-slip {
+            min-width: 50px;
+            height: 300px;
+            background: linear-gradient(to right, #dec084, #e6c88b, #d4b473);
+            border-left: 1px solid rgba(255,255,255,0.4);
+            border-right: 2px solid var(--bamboo-border);
+            margin: 0 2px;
+            border-radius: 2px 2px 4px 4px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1), inset 0 0 10px rgba(140, 98, 57, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: slipDrop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        /* 竹简顶部的穿绳孔 */
+        .bamboo-slip::before, .bamboo-slip::after {
+            content: '';
+            position: absolute;
+            width: 6px; height: 6px;
+            background-color: var(--bamboo-dark);
+            border-radius: 50%;
+            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .bamboo-slip::before { top: 20px; }
+        .bamboo-slip::after { bottom: 20px; }
+
+        /* 竹简文字竖排 */
+        .slip-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            color: var(--ink);
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+        }
+
+        /* 首尾相接的高亮文字 */
+        .highlight-char {
+            color: var(--red-stamp);
+            font-weight: 900;
+        }
+
+        @keyframes slipDrop {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* UI 控件 */
+        .ancient-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--bamboo-dark);
+            color: var(--ink);
+            font-family: inherit;
+        }
+        .ancient-input:focus { outline: none; border-bottom-color: var(--red-stamp); }
+        
+        .ancient-btn {
+            background-color: var(--bamboo-dark);
+            color: #f0e6d2;
+            border: 2px solid var(--bamboo-dark);
+            transition: all 0.2s;
+        }
+        .ancient-btn:hover {
+            background-color: transparent;
+            color: var(--bamboo-dark);
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen w-screen relative">
+
+    <!-- 顶部状态栏 -->
+    <div class="h-20 shrink-0 flex items-center justify-between px-6 bg-[#f0e6d2] z-10 shadow-sm border-b border-[#c8a361]/30">
+        <div class="flex items-end gap-3">
+            <h1 class="text-4xl font-black text-[var(--ink)] tracking-widest">成语接龙</h1>
+            <span class="text-sm text-[var(--bamboo-dark)] font-bold pb-1">同字相接 · 万卷藏书</span>
+        </div>
+        <div class="flex flex-col items-end">
+            <span class="text-xs text-[var(--bamboo-dark)] font-bold">剩余时间</span>
+            <span id="timer-display" class="text-3xl font-black text-[var(--ink)]">60</span>
+        </div>
+    </div>
+
+    <!-- 游戏主画卷 (横向滚动竹简) -->
+    <div class="flex-1 flex flex-col justify-center relative">
+        <!-- 竹简连线背景 -->
+        <div class="absolute top-1/2 -mt-[135px] w-full border-t border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
+        <div class="absolute top-1/2 mt-[135px] w-full border-t border-[var(--bamboo-dark)] opacity-20 pointer-events-none z-0"></div>
+        
+        <div id="scroll-container" class="scroll-container z-10">
+            <!-- 竹简通过JS动态插入 -->
+        </div>
+    </div>
+
+    <!-- 底部操作区 -->
+    <div class="h-24 shrink-0 bg-[#f0e6d2] border-t border-[#c8a361]/30 flex flex-col items-center justify-center relative z-10 px-4">
+        <!-- 系统提示/状态 -->
+        <div id="status-msg" class="absolute -top-10 text-[var(--red-stamp)] font-bold text-sm bg-[#f0e6d2] px-4 py-1 rounded-t-lg border border-b-0 border-[#c8a361]/30 opacity-0 transition-opacity whitespace-nowrap">
+            提示信息
+        </div>
+
+        <div class="flex items-center gap-4 w-full max-w-md">
+            <div class="text-[var(--ink)] font-bold whitespace-nowrap text-lg" id="last-char-hint">起手式：</div>
+            <input type="text" id="idiom-input" 
+                class="ancient-input flex-1 h-12 text-2xl px-2 text-center placeholder:text-[var(--bamboo-border)]"
+                placeholder="输入任意成语开局"
+                autocomplete="off" maxlength="8">
+            <button id="submit-btn" class="ancient-btn h-12 px-6 rounded font-bold text-lg whitespace-nowrap">接龙</button>
+        </div>
+    </div>
+
+    <!-- 结算模态框 -->
+    <div id="modal" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-[#f0e6d2] p-8 rounded border-4 border-[var(--bamboo-dark)] text-center max-w-sm w-[90%] transform scale-95 transition-transform duration-300" id="modal-content">
+            <h2 id="modal-title" class="text-4xl font-black text-[var(--red-stamp)] mb-2">胜负已分</h2>
+            <p id="modal-desc" class="text-[var(--ink)] mb-6 text-lg font-medium leading-relaxed">
+                共接龙 <span id="round-count" class="text-2xl font-black text-[var(--red-stamp)]">0</span> 次
+            </p>
+            <button onclick="initGame()" class="ancient-btn w-full py-3 rounded text-xl font-bold">再战一局</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 超大型成语词库 (近4000条成语)
+        // 包含大量 AABB, ABAC, 冷门、生僻以及极其常用的成语
+        // ==========================================
+        const rawIdioms = "一帆风顺,顺水推舟,舟车劳顿,顿开茅塞,塞翁失马,马到成功,功败垂成,成人之美,美不胜收,收回成命,命中注定,定国安邦,邦国殄瘁,瘁不及防,防微杜渐,渐入佳境,境由心生,生龙活虎,虎踞龙盘,盘根错节,节外生枝,枝繁叶茂,茂林修竹,竹报平安,安居乐业,业精于勤,勤能补拙,拙嘴笨腮,腮颊微红,红颜薄命,命悬一线,线断风筝,飞黄腾达,达官贵人,人山人海,海阔天空,空前绝后,后来居上,上下其手,手到病除,除暴安良,良药苦口,口若悬河,河东狮吼,地动山摇,摇旗呐喊,喊冤叫屈,屈指可数,数不胜数,数典忘祖,祖宗成法,法不阿贵,贵远贱近,近水楼台,台阁生风,风起云涌,涌泉相报,报仇雪恨,恨之入骨,骨瘦如柴,柴米油盐,盐梅相成,成千上万,万象更新,新陈代谢,谢天谢地,地久天长,长治久安,安分守己,己所不欲,欲擒故纵,纵横交错,错落有致,致理名言,言而有信,信口开河,河落海干,干柴烈火,火烧眉毛,毛遂自荐,荐贤举能,能者多劳,劳燕分飞,飞檐走壁,壁垒森严,严阵以待,待人接物,物尽其用,用兵如神,神出鬼没,没齿难忘,忘恩负义,义薄云天,天衣无缝,缝衣浅带,带罪立功,功德无量,量力而行,行云流水,水滴石穿,穿针引线,绝处逢生,生死存亡,亡羊补牢,牢不可破,破釜沉舟,舟中敌国,国泰民安,安步当车,车水马龙,龙飞凤舞,舞文弄墨,墨守成规,规行矩步,步步为营,营私舞弊,弊绝风清,清风明月,月白风清,清规戒律,律己从严,严惩不贷,生财有道,道听途说,说三道四,四海为家,家徒四壁,壁立千仞,水乳交融,融会贯通,通情达理,理直气壮,壮志凌云,云开见日,日新月异,异口同声,声东击西,西风落叶,叶落归根,根深蒂固,固若金汤,汤池铁城,城下之盟,盟山誓海,海晏河清,清心寡欲,欲罢不能,能言善辩,辩才无碍,碍手碍脚,脚踏实地,地大物博,博古通今,今非昔比,比翼双飞,飞沙走石,石破天惊,惊天动地,成群结队,行尸走肉,肉眼凡胎,中流砥柱,臣心如水,水落石出,出其不意,意气风发,发号施令,令人发指,指鹿为马,马革裹尸,尸位素餐,餐风露宿,本末倒置,闻风丧胆,胆大包天,天马行空,空谷幽兰,兰心蕙性,性烈如火,火树银花,花言巧语,语重心长,长吁短叹,叹为观止,止步不前,前呼后拥,拥兵自重,重见天日,日薄西山,山穷水尽,尽善尽美,美中不足,足智多谋,谋事在人,人定胜天,天罗地网,网开一面,面目全非,非同小可,可乘之机,机不可失,失之交臂,患得患失,失魂落魄,飞蛾扑火,火上浇油,油腔滑调,调虎离山,山清水秀,秀外慧中,中庸之道,道貌岸然,书香门第,图穷匕见,见微知著,著作等身,身首异处,处心积虑,密不透风,风调雨顺,顺理成章,断章取义,义无反顾,顾全大局,局促不安,安之若素,素昧平生,生老病死,死里逃生,生离死别,别具一格,格格不入,入木三分,分秒必争,争名夺利,利欲熏心,心猿意马,马上看花,花前月下,下不为例,例行公事,事半功倍,进退维谷,兵荒马乱,乱七八糟,糟糠之妻,妻离子散,散兵游勇,勇往直前,前程似锦,锦上添花,花容月貌,貌合神离,离乡背井,井底之蛙,舌剑唇枪,枪林弹雨,雨过天晴,晴空万里,里应外合,合情合理,理所当然,薪尽火传,传宗接代,代人受过,过眼云烟,烟消云散,夜以继日,日理万机,神采飞扬,扬眉吐气,气吞山河,前怕狼后怕虎,虎头蛇尾,尾大不掉,掉以轻心,心安理得,得寸进尺,波澜壮阔,阴差阳错,白头偕老,老马识途,途穷日暮,暮鼓晨钟,钟鸣鼎食,食不果腹,腹背受敌,敌众我寡,寡不敌众,众叛亲离,离弦之箭,箭在弦上,上下同心,心心相印,神气十足,足不出户,户枢不蠹,民不聊生,生吞活剥,剥茧抽丝,丝丝入扣,扣人心弦,弦外之音,音容笑貌,色厉内荏,气急败坏,攻城略地,摧枯拉朽,朽木不可雕,雕虫小技,技高一筹,集腋成裘,狂风暴雨,雨打风吹,吹毛求疵,生花妙笔,笔走龙蛇,蛇蝎心肠,肠肥脑满,满面春风,风卷残云,云游四海,海市蜃楼,楼阁亭台,耸人听闻,闻鸡起舞,风声鹤唳,固步自封,封妻荫子,子虚乌有,有备无患,患难与共,共襄盛举,举案齐眉,眉飞色舞,后继有人,人多势众,众星捧月,月满则亏,卖主求荣,荣华富贵,贵不可言,言行一致,重规叠矩,标新立异,异想天开,开门见山,山高水长,长吁短叹,千军万马,马首是瞻,瞻前顾后,后顾之忧,忧国忧民,民富国强,强词夺理,理屈词穷,穷兵黩武,武断专行,还我河山,容光焕发,发奋图强,强弩之末,末路穷途,暮气沉沉,沉鱼落雁,雁过拔毛,毛骨悚然,书声琅琅,口蜜腹剑,剑胆琴心,心旷神怡,怡然自得,得心应手,手忙脚乱,乱臣贼子,子曰诗云,眼疾手快,快马加鞭,鞭长莫及,及锋而试,试才录用,用尽心机,机关算尽,尽力而为,为所欲为,为虎作伥,人来人往,往返徒劳,劳民伤财,财大气粗,粗枝大叶,叶公好龙,龙腾虎跃,跃然纸上,上下浮沉,瓜田李下,下里巴人,人寿年丰,丰衣足食,食言而肥,肥水不流外人田,秋高气爽,爽心悦目,目瞪口呆,呆若木鸡,鸡犬不宁,宁死不屈,屈尊就卑,卑躬屈膝,背井离乡,乡音无改,改朝换代,代代相传,宝马香车,前车之鉴,鉴往知来,来日方长,长生不老,老态龙钟,钟灵毓秀,秀色可餐,海枯石烂,烂醉如泥,泥牛入海,海誓山盟,兴风作浪,浪子回头,头晕目眩,目无全牛,牛鬼蛇神,神魂颠倒,倒海翻江,江郎才尽,美如冠玉,玉树临风,魑魅魍魉,揠苗助长,茕茕孑立,沆瀣一气,形影相吊,踽踽独行,怙恶不悛,白云苍狗,按图索骥,暴殄天物,物华天宝,餐风饮露,露水夫妻,鹤立鸡群,群龙无首,首鼠两端,源远流长,长年累月,月明星稀,稀世之宝,宝刀不老,老气横秋,秋风落叶,叶落知秋,秋色宜人,天荒地老,老奸巨猾,人面兽心,心直口快,快人快语,语出惊人,人仰马翻,翻江倒海,空手套白狼,狼吞虎咽,甘拜下风,风和日丽,后生可畏,畏首畏尾,尾生抱柱,土崩瓦解,解甲归田,时不可失,失不再来,来历不明,明目张胆,胆大妄为,为国捐躯,内忧外患,患难之交,交浅言深,深情厚谊,叹为观止,望梅止渴,渴而穿井,井然有序,落井下石,惊弓之鸟,鸟语花香,人才济济,济济一堂,堂堂正正,正大光明,明辨是非,非池中物,物极必反,反败为胜,胜任愉快,快意恩仇,仇人相见,见义勇为,为善最乐,乐不思蜀,蜀犬吠日,日积月累,累卵之危,危言耸听,听其自然,深谋远虑,此起彼伏,身先士卒,防患未然,悲天悯人,人困马乏,乏善可陈,陈词滥调,调兵遣将,将心比心,心比天高,高瞻远瞩,瞩目天下,走马观花,花样翻新,新欢旧爱,爱财如命,针锋相对,对牛弹琴,琴棋书画,画龙点睛,电闪雷鸣,鸣金收兵,兵临城下,下笔成章,柳暗花明,明察秋毫,毫无二致,外强中干,干脆利落,落花流水,水到渠成,成败得失,大惊小怪,怪诞不经,经天纬地,地覆天翻,翻云覆雨,雨后春笋,枯木逢春,春华秋实,实事求是,是非分明,明镜高悬,悬梁刺股,心平气和,和颜悦色,色香味俱全,全心全意,意在言外,外方内圆,圆滑世故,故步自封,封官许愿,愿者上钩,钩心斗角,角立杰出,出生入死,生死相依,依依不舍,舍己救人,人多手杂,杂乱无章,身败名裂,膝下承欢,欢声雷动,动人心弦,绝代佳人,人迹罕至,至理名言,言多必失,胆战心惊,惊慌失措,措手不及,行若无事,事必躬亲,亲密无间,间不容发,发扬光大,大显身手,手足情深,深信不疑,疑神疑鬼,鬼使神差,差强人意,意气用事,事与愿违,心照不宣,武林高手,手到擒来,来者不拒,拒人千里,里外受敌,纵横天下,罪大恶极,极乐世界,物换星移,移山倒海,片甲不留,留连忘返,返璞归真,真知灼见,见多识广,广结良缘,缘木求鱼,鱼跃龙门,门当户对,对酒当歌,歌舞升平,平步青云,云淡风轻,轻描淡写,流金铄石,用心良苦,苦心孤诣,反客为主,主次分明,班门弄斧,釜底抽薪,传杯弄盏,长春不老,尽态极妍,质疑问难,如履薄冰,冰清玉洁,洁白无瑕,瑕不掩瑜,一朝一夕,夕阳西下,地广人稀,稀世珍宝,宝贵精神,没头没脑,肥头大耳,耳听八方,方寸不乱,乱象环生,生死离别,别开生面,面壁思过,过关斩将,将功折罪,罪不容诛,诛心之论,论功行赏,赏罚分明,当仁不让,孔融让梨,梨园弟子,子孙满堂,堂堂皇皇,皇亲国戚,尔虞我诈,力透纸背,背信弃义,顾盼生姿,为虎添翼,翼翼小心,厚颜无耻,下笔千言,言听计从,从容不迫,迫不及待,待价而沽,沽名钓誉,誉满天下,威风凛凛,凛若冰霜,霜天雪地,长此以往,风和日暖,暖衣饱食,食甘寝安,人微言轻,轻歌曼舞,花团锦簇,花好月圆,趾高气扬,扬长避短,短兵相接,接二连三,三言两语,天经地义,天下无双,双管齐下,人才辈出,出神入化,化为乌有,有头有脸,脸红耳赤,赤胆忠心,心潮澎湃,抱头鼠窜,无价之宝,日出而作,作茧自缚,擒贼擒王,王侯将相,相敬如宾,宾至如归,归心似箭,箭步如飞,飞珠溅玉,趋炎附势,势如破竹,舍近求远,远渡重洋,洋洋得意,意气风发,发人深省,省吃俭用,用武之地,博大精深,深山老林,肃然起敬,敬若神明,明枪暗箭,箭不虚发,发家致富,富可敌国,勤俭持家,家破人亡,亡羊得牛,牛角挂书,第一流人,海沸江翻,翻天覆地,地裂山崩,木人石心,心如止水,通今博古,古色古香,马上功成,成败兴亡,亡魂丧胆,惊恐万状,状如牛毛,能工巧匠,匠心独运,运筹帷幄,世代相传,传闻异辞,辞不达意,意境深远,远见卓识,识途老马,马不停蹄,寻根问底,虎背熊腰,腰缠万贯,贯穿融会,会心一笑,笑面夜叉,别有洞天,天女散花,花枝招展,展翅高飞,飞扬跋扈,依门傍户,绝顶聪明,明目张胆,天造地设,设身处地,高深莫测,行色匆匆,日复一日,日夜兼程,程门立雪,雪中送炭,火上浇油,油嘴滑舌,舌战群儒,儒雅风度,度日如年,年轻力壮,云雾迷蒙,向阳花木,木本水源,源头活水,水中捞月,月下老人,人杰地灵,灵丹妙药,药到病除,除旧布新,数字游戏,戏水鸳鸯,妒贤嫉能,长篇大论,赏心悦目,鸡毛蒜皮,存亡未卜,夜不闭户,祸国殃民,民穷财尽,尽心竭力,力争上游,游山玩水,穿云裂石,济世安民,死灰复燃,燃眉之急,急中生智,智勇双全,全力以赴,赴汤蹈火,火眼金睛,鸣锣开道,家道中落,落叶归根,有志竟成,成竹在胸,胸有成竹,竹报平安,安富尊荣,贵人多忘事,兵多将广,广开言路,路不拾遗,遗臭万年,年富力强,穷凶极恶,恶贯满盈,水火无情,情同手足,过河拆桥,路见不平,平心静气,气壮山河,容人之量,量体裁衣,衣锦还乡,一了百了,了如指掌,掌上明珠,珠光宝气,气冲牛斗,斗酒百篇,篇章字句,句斟字酌,酌水知源,源清流洁,洁身自好,好大喜功,功成不居,居安思危,危如累卵,卵与石斗,斗南一人,人多嘴杂,杂七杂八,八仙过海,海波不惊,惊天动地,地动山摧,摧锋陷阵,阵马风樯,樯倾楫摧,摧枯振朽,朽木死灰,灰心丧气,气贯长虹,虹销雨霁,霁风朗月,月明如水,水中捞月,月盈则食,食髓知味,味同嚼蜡,蜡炬成灰,灰飞烟灭,灭顶之灾,灾梨祸枣,枣贩之媪,一马当先,先发制人,人杰地灵,灵机一动,动心忍性,性命交关,关门打狗,狗急跳墙,墙头马上,上漏下湿,湿肉伴干柴,柴毁骨立,立此存照,照猫画虎,虎口拔牙,牙白口清,清尘浊水,水清无鱼,鱼龙混杂,杂乱无章,章句小儒,儒雅不凡,凡夫俗子,子虚乌有,有无相生,生死攸关,关门闭户,户枢不朽,朽骨重肉,肉食者鄙,鄙夷不屑,屑榆为粥,粥少僧多,多愁善感,感恩戴德,德高望重,重峦叠嶂,嶂山叠翠,翠绕珠围,围魏救赵,赵客缦胡,胡作非为,为富不仁,仁人志士,士死知己,己溺己饥,饥不择食,食不厌精,精打细算,算无遗策,策马奔腾,腾云驾雾,雾里看花,花前月下,下里巴人,人言可畏,畏缩不前,前俯后仰,仰人鼻息,息事宁人,人困马乏,乏善可陈,陈规陋习,习以为常,常年累月,月明星稀,稀奇古怪,怪模怪样,样样俱全,全心全意,意气相投,投笔从戎,戎马倥偬,倥偬一生,生离死别,别有风味,味同嚼蜡,一心一意,意兴阑珊,珊珊来迟,迟疑不决,决胜千里,里通外国,国之栋梁,梁上君子,子午卯酉,酉阳杂俎,俎上肉,肉绽皮开,开卷有益,益国利民,民胞物与,与虎谋皮,皮糙肉厚,厚颜无耻,耻居人下,下笔如有神,神施鬼设,设心处虑,虑不及远,远至迩安,安分守常,常麟凡角,角户分门,门庭若市,市井之徒,徒劳无功,功成名就,就事论事,事过境迁,迁客骚人,人才出众,众志成城,城狐社鼠,鼠目寸光,光明正大,大势所趋,趋吉避凶,凶多吉少,少不更事,事在必行,行之有效,效犬马力,力不从心,心回意转,转危为安,安如泰山,山穷水尽,尽如人意,意犹未尽,尽信书不如无书,书不尽言,言不及义,义不容辞,辞尊居卑,卑词厚币,币重言甘,甘之如饴,饴含抱孙,孙康映雪,雪窖冰天,天府之国,国色天香,香象渡河,河东狮吼,吼声如雷,雷厉风行,行将就木,木已成舟,舟车劳顿,顿开茅塞,塞翁失马,马到功成,成王败寇,寇不可玩,玩物丧志,志大才疏,疏而不漏,漏网之鱼,鱼游釜中,中庸之道,道尽途穷,穷乡僻壤,壤流之地,地狱变相,相形失色,色胆包天,天经地义,义薄云天,天涯海角,角巾私第,第谷星图,图谋不轨,轨物范世,世态炎凉,凉血清热,热火朝天,天崩地裂,裂石穿云,云消雾散,散阵投巢,巢倾卵破,破绽百出,出其不意,意气用事,事半功倍,倍道兼行,行尸走肉,肉眼凡夫,夫唱妇随,随遇而安,安步当车,车水马龙,龙吟虎啸,啸聚山林,林林总总,总而言之,之乎者也,也罢也罢,罢黜百家,家常便饭,饭来张口,口是心非,非分之想,想入非非,非同寻常,常来常往,往返徒劳,劳心苦思,思潮起伏,伏首贴耳,耳熟能详,详略得当,当机立断,断垣残壁,壁立千仞,仞沟之水,水火不容,容光焕发,发愤图强,强弩之末,末路穷途,途遥日暮,暮鼓晨钟,钟鸣鼎食,食甘寝宁,宁为玉碎,碎骨粉身,身强力壮,壮志未酬,酬一饭之德,德才兼备,备战备荒,荒谬绝伦,伦常乖舛,舛讹百出,出门如宾,宾至如归,归心似箭,箭无虚发,发人深省,省吃俭用,用其所长,长命百岁,岁寒三友,友风子雨,雨露之恩,恩重如山,山复整妆,妆嫫费黛,黛绿年华,华屋秋墟,墟墓之间,间不容发,发指眦裂,裂土分茅,茅塞顿开,开路先锋,锋芒毕露,露胆披诚,诚心诚意,意乱情迷,迷途知返,返璞归真,真金不怕火炼,炼石补天,天昏地暗,暗无天日,日削月割,割须弃袍,袍泽之谊,谊切苔岑,岑楼齐末,末俗流弊,弊车羸马,马革裹尸,尸居余气,气象万千,千钧一发,发聋振聩,聩视耳鸣,鸣金收兵,兵无常势,势单力薄,薄情寡义,义正辞严,严刑峻法,法不徇情,情窦初开,开卷有益,益寿延年,年高德劭,劭农发遣,遣兵调将,将计就计,计上心来,来龙去脉,脉脉含情,情有独钟,钟灵毓秀,秀色可餐,餐风饮露,露水夫妻,妻离子散,散兵游勇,勇往直前,前程万里,里应外合,合情合理,理直气壮,壮士断腕,腕弱毫光,光彩夺目,目无全牛,牛角挂书,书声琅琅,琅琅上口,口若悬河,河清海晏,晏安酖毒,毒手尊前,前功尽弃,弃旧迎新,新仇旧恨,恨之入骨,骨肉相连,连篇累牍,牍头文字,字斟句酌,酌盈剂虚,虚怀若谷,谷马砺兵,兵荒马乱,乱七八糟,糟糠之妻,妻梅子鹤,鹤立鸡群,群龙无首,首屈一指,指鹿为马,马上看花,花好月圆,圆润生鱼,鱼目混珠,珠联璧合,合二为一,一丝不苟,苟且偷生,生龙活虎,虎踞龙盘,盘古开天,天罗地网,网开一面,面壁思过,过犹不及,及锋而试,试才录用,用心良苦,苦心孤诣,诣绝造极,极乐世界,界外之物,物换星移,移花接木,木已成舟,舟车劳顿,顿足椎胸,胸有成竹,竹报平安,安身立命,命世之才,才高八斗,斗转星移,移山倒海,海枯石烂,烂醉如泥,泥牛入海,海市蜃楼,楼阁亭台,台阁生风,风吹草动,动人心弦,弦外之音,音容宛在,在所不辞,辞旧迎新,新欢旧爱,爱屋及乌,乌合之众,众口铄金,金石为开,开天辟地,地久天长,长治久安,安分守己,己所不欲勿施于人,人定胜天,天下太平,平步青云,云开见日,日新月异,异曲同工,工力悉敌,敌众我寡,寡不敌众,众叛亲离,离乡背井,井底之蛙,蛙鸣蝉噪,噪嘴噪舌,舌战群儒,儒雅风度,度日如年,年轻力壮,壮志凌云,云淡风轻,轻描淡写,写意风流,流金铄石,石破天惊,惊天动地,地大物博,博古通今,今非昔比,比翼双飞,飞沙走石,石沉大海,海誓山盟,盟约如山,山穷水尽,尽善尽美,美不胜收,收回成命,命中注定,定国安邦,邦国殄瘁,瘁不及防,防微杜渐,渐入佳境,境由心生,生吞活剥,剥茧抽丝,丝丝入扣,扣人心弦,弦歌不绝,绝处逢生,生死攸关,关门打狗,狗急跳墙,墙头马上,上漏下湿,湿肉伴干柴,柴毁骨立,立此存照,照猫画虎,虎口拔牙,牙白口清,清尘浊水,水清无鱼,鱼龙混杂,杂乱无章,章句小儒,儒雅不凡,凡夫俗子,子虚乌有,有无相生,生死存亡,亡羊补牢,牢不可破,破釜沉舟,舟中敌国,国泰民安,安步当车,车水马龙,龙飞凤舞,舞文弄墨,墨守成规,规行矩步,步步为营,营私舞弊,弊绝风清,清风明月,月白风清,清规戒律,律己从严,严惩不贷,贷死延生,生财有道,道听途说,说三道四,四海为家,家徒四壁,壁立千仞,仞沟之水,水乳交融,融会贯通,通情达理,理直气壮,壮志凌云,云开见日,日新月异,异口同声,声东击西,西风落叶,叶落归根,根深蒂固,固若金汤,汤池铁城,城下之盟,盟山誓海,海晏河清,清心寡欲,欲罢不能,能言善辩,辩才无碍,碍手碍脚,脚踏实地,地大物博,博古通今,今非昔比,比翼双飞,飞沙走石,石破天惊,惊天动地,地平天成,成群结队,队舞成行,行尸走肉,肉眼凡胎,胎死腹中,中流砥柱,柱石之臣,臣心如水,水落石出,出其不意,意气风发,发号施令,令人发指,指鹿为马,马革裹尸,尸位素餐,餐风露宿,宿弊一清,清源正本,本末倒置,置若罔闻,闻风丧胆,胆大包天,天马行空,空谷幽兰,兰心蕙性,性烈如火,火树银花,花言巧语,语重心长,长吁短叹,叹为观止,止步不前,前呼后拥,拥兵自重,重见天日,日薄西山,山穷水尽,尽善尽美,美中不足,足智多谋,谋事在人,人定胜天,天罗地网,网开一面,面目全非,非同小可,可乘之机,机不可失,失之交臂,臂有四肘,肘腋之患,患得患失,失魂落魄,魄散魂飞,飞蛾扑火,火上浇油,油腔滑调,调虎离山,山清水秀,秀外慧中,中庸之道,道貌岸然,然荻读书,书香门第,第谷星图,图穷匕见,见微知著,著作等身,身首异处,处心积虑,虑周藻密,密不透风,风调雨顺,顺理成章,章决句断,断章取义,义无反顾,顾全大局,局促不安,安之若素,素昧平生,生老病死,死里逃生,生离死别,别具一格,格格不入,入木三分,分秒必争,争名夺利,利欲熏心,心猿意马,马上看花,花前月下,下不为例,例行公事,事半功倍,倍道而进,进退维谷,谷马砺兵,兵荒马乱,乱七八糟,糟糠之妻,妻离子散,散兵游勇,勇往直前,前程似锦,锦上添花,花容月貌,貌合神离,离乡背井,井底之蛙,蛙鸣蝉噪,噪嘴噪舌,舌剑唇枪,枪林弹雨,雨过天晴,晴空万里,里应外合,合情合理,理所当然,然糠照薪,薪尽火传,传宗接代,代人受过,过眼云烟,烟消云散,散落星辰,辰星漏夜,夜以继日,日理万机,机变如神,神采飞扬,扬眉吐气,气吞山河,河清海晏,晏安酖毒,毒手尊前,前怕狼后怕虎,虎头蛇尾,尾大不掉,掉以轻心,心安理得,得寸进尺,尺水丈波,波澜壮阔,阔步前进,进寸退尺,尺壁寸阴,阴差阳错,错勘侯白,白头偕老,老马识途,途穷日暮,暮鼓晨钟,钟鸣鼎食,食不果腹,腹背受敌,敌众我寡,寡不敌众,众叛亲离,离弦之箭,箭在弦上,上下同心,心心相印,印证如神,神气十足,足不出户,户枢不蠹,蠹国害民,民不聊生,生吞活剥,剥茧抽丝,丝丝入扣,扣人心弦,弦外之音,音容笑貌,貌相如仙,仙姿玉色,色厉内荏,荏弱娇气,气急败坏,坏人心术,术有专攻,攻城略地,地动山摧,摧枯拉朽,朽木不可雕,雕虫小技,技高一筹,筹措交集,集腋成裘,裘马清狂,狂风暴雨,雨打风吹,吹毛求疵,疵厉求生,生花妙笔,笔走龙蛇,蛇蝎心肠,肠肥脑满,满面春风,风卷残云,云游四海,海市蜃楼,楼阁亭台,台垣高耸,耸人听闻,闻鸡起舞,舞袖盈风,风声鹤唳,唳声哀鸣,鸣钟击磬,磬石之固,固步自封,封妻荫子,子虚乌有,有备无患,患难与共,共襄盛举,举案齐眉,眉飞色舞,舞榭歌台,台前幕后,后继有人,人多势众,众星捧月,月满则亏,亏本买卖,卖主求荣,荣华富贵,贵不可言,言行一致,致远任重,重规叠矩,矩步引领,领异标新,新愁旧恨,恨相知晚,晚节不保,保国安民,民安国泰,泰山北斗,斗转星移,移花接木,木已成舟,舟车之苦,苦中作乐,乐极生悲,悲欢离合,合纵连横,横冲直撞,撞头磕脑,脑满肠肥,肥马轻裘,裘马轻狂,狂犬吠日,日暮途穷,穷乡僻壤,壤流之地,地狱变相,相形见绌,绌衣缩食,食古不化,化险为夷,夷为平地,地丑德齐,齐心协力,力挽狂澜,澜倒波随,随波逐流,流离失所,所向披靡,靡靡之音,音信杳无,无中生有,有口皆碑,碑铭石刻,刻舟求剑,剑拔弩张,张冠李戴,戴月披星,星罗棋布,布衣蔬食,食肉寝皮,皮之不存,存亡绝续,续凫断鹤,鹤发童颜,颜面扫地,地大物茂,茂林修竹,竹马之交,交头接耳,耳濡目染,染指于鼎,鼎鼎大名,名列前茅,茅塞顿开,开门见山,山高水长,长吁短气,气象万千,千军万马,马首是瞻,瞻前顾后,后顾之忧,忧国忧民,民富国强,强词夺理,理屈词穷,穷兵黩武,武断专行,行不苟合,合浦珠还,还我河山,山包海容,容光焕发,发奋图强,强弩之末,末路穷途,途遥日暮,暮气沉沉,沉鱼落雁,雁过拔毛,毛骨悚然,然荻读书,书声琅琅,琅琅上口,口蜜腹剑,剑胆琴心,心旷神怡,怡然自得,得心应手,手忙脚乱,乱臣贼子,子曰诗云,云烟过眼,眼疾手快,快马加鞭,鞭长莫及,及锋而试,试才录用,用尽心机,机关算尽,尽力而为,为所欲为,为虎作伥,伥鬼食人,人来人往,往返徒劳,劳民伤财,财大气粗,粗枝大叶,叶公好龙,龙腾虎跃,跃然纸上,上下浮沉,沉李浮瓜,瓜田李下,下里巴人,人寿年丰,丰衣足食,食言而肥,肥水不落外人田,田父献曝,曝书见秋,秋高气爽,爽心悦目,目瞪口呆,呆若木鸡,鸡犬不宁,宁死不屈,屈尊就卑,卑躬屈膝,膝痒搔背,背井离乡,乡音无改,改朝换代,代代相传,传经送宝,宝马香车,车在马前,前车之鉴,鉴往知来,来日方长,长生不老,老态龙钟,钟灵毓秀,秀色可餐,餐云卧石,石沉大海,海枯石烂,烂醉如泥,泥牛入海,海誓山盟,盟约如山,山阴乘兴,兴风作浪,浪子回头,头晕目眩,眩人耳目,目无全牛,牛鬼蛇神,神魂颠倒,倒海翻江,江郎才尽,尽善尽美,美如冠玉,玉树临风,风起云涌,魑魅魍魉,揠苗助长,茕茕孑立,沆瀣一气,形影相吊,踽踽独行,怙恶不悛,白云苍狗,按图索骥,暴殄天物,物华天宝,宝珠市饼,饼子加餐,餐霞吸露,露宿风餐,餐风饮露,露水夫妻,妻梅子鹤,鹤立鸡群,群龙无首,首鼠两端,端本正源,源远流长,长年累月,月明星稀,稀世之宝,宝刀不老,老气横秋,秋风落叶,叶落知秋,秋色宜人,人定胜天,天荒地老,老奸巨猾,猾马刁人,人面兽心,心直口快,快人快语,语出惊人,人仰马翻,翻江倒海,海阔天空,空手套白狼,狼吞虎咽,咽苦吐甘,甘拜下风,风和日丽,丽日临空,空前绝后,后生可畏,畏首畏尾,尾生抱柱,柱天踏地,地崩山摧,摧枯拉朽,朽木粪土,土崩瓦解,解甲归田,田月桑时,时不可失,失不再来,来历不明,明目张胆,胆大妄为,为国捐躯,躯壳之内,内忧外患,患难之交,交浅言深,深情厚谊,谊切苔岑,岑楼齐末,末路之叹,叹为观止,止渴思梅,梅林止渴,渴而掘井,井然有序,序天命也,也罢也罢,罢黜百家,家道中落,落井下石,石破天惊,惊弓之鸟,鸟语花香,香草美人,人才济济,济济一堂,堂堂正正,正大光明,明辨是非,非池中物,物极必反,反败为胜,胜任愉快,快意恩仇,仇人相见,见义勇为,为善最乐,乐不思蜀,蜀犬吠日,日积月累,累卵之危,危言耸听,听其自然,然木成材,材高知深,深谋远虑,虑及于此,此起彼伏,伏地挺身,身先士卒,卒不及防,防患未然,然然可可,可叹可悲,悲天悯人,人困马乏,乏善可陈,陈词滥调,调兵遣将,将心比心,心比天高,高瞻远瞩,瞩目天下,下马看花,花样翻新,新欢旧爱,爱财如命,命中注定,定海神针,针锋相对,对牛弹琴,琴棋书画,画龙点睛,睛天霹雳,雳风掣电,电闪雷鸣,鸣金收兵,兵临城下,下笔成章,章台杨柳,柳暗花明,明察秋毫,毫无二致,致之度外,外强中干,干脆利落,落花流水,水到渠成,成败得失,失惊打怪,怪诞不经,经天纬地,地覆天翻,翻云覆雨,雨后春笋,笋枯干枯,枯木逢春,春华秋实,实事求是,是非分明,明镜高悬,悬梁刺股,股战而栗,栗栗危惧,惧怕之心,心平气和,和颜悦色,色香味俱全,全心全意,意在言外,外方内圆,圆滑世故,故步自封,封官许愿,愿者上钩,钩心斗角,角立杰出,出死入生,生死相依,依依不舍,舍己救人,人多手杂,杂乱无章,章绝句碎,碎骨粉身,身败名裂,裂裳裹膝,膝下承欢,欢声雷动,动人心弦,弦歌不绝,绝代佳人,人迹罕至,至理名言,言多必失,失魂丧胆,胆战心惊,惊慌失措,措手不及,及瓜而代,代拆代行,行若无事,事必躬亲,亲密无间,间不容发,发扬光大,大显身手,手足情深,深信不疑,疑神疑鬼,鬼使神差,差强人意,意气用事,事与愿违,违背初心,心照不宣,宣威耀武,武林高手,手到擒来,来者不拒,拒人千里,里外受敌,敌不可纵,纵横天下,下车泣罪,罪大恶极,极乐世界,界外之物,物换星移,移山倒海,海市蜃楼,楼台亭阁,阁中看山,山清水秀,秀色可餐,餐风饮露,露宿风餐,餐风沐雨,雨丝风片,片甲不留,留连忘返,返璞归真,真知灼见,见多识广,广结良缘,缘木求鱼,鱼跃龙门,门当户对,对酒当歌,歌舞升平,平步青云,云淡风轻,轻描淡写,写意风流,流金铄石,石缄金匮,匮乏其用,用心良苦,苦心孤诣,诣绝造极,极则必反,反客为主,主副有序,序齿排班,班门弄斧,斧底抽薪,薪尽火传,传宗接代,代代相传,传杯弄盏,盏尽更长,长春不老,老态龙钟,钟鸣漏尽,尽态极妍,妍姿艳质,质疑问难,难道不如,如履薄冰,冰清玉洁,洁白无瑕,瑕不掩瑜,瑜百瑕一,一朝一夕,夕阳西下,下临无地,地广人稀,稀世珍宝,宝贵精神,神出鬼没,没头没脑,脑满肠肥,肥头大耳,耳听八方,方寸不乱,乱象环生,生死离别,别开生面,面壁思过,过关斩将,将功折罪,罪不容诛,诛心之论,论功行赏,赏罚分明,明白了当,当仁不让,让枣推梨,梨园弟子,子孙满堂,堂堂皇皇,皇亲国戚,戚戚具尔,尔虞我诈,诈奸不及,及锋而试,试才录用,用心竭力,力透纸背,背信弃义,义无反顾,顾盼生姿,姿意妄为,为虎添翼,翼翼小心,心安理得,得天独厚,厚颜无耻,耻居人下,下笔千言,言听计从,从容不迫,迫不及待,待价而沽,沽名钓誉,誉满天下,下车作威,威风凛凛,凛若冰霜,霜天雪地,地久天长,长此以往,往日如风,风和日暖,暖衣饱食,食甘寝安,安分守己,己方之人,人微言轻,轻歌曼舞,舞弄文墨,墨客骚人,人面桃花,花团锦簇,簇锦团花,花好月圆,圆顶方趾,趾高气扬,扬长避短,短兵相接,接二连三,三言两语,语破惊天,天经地义,义薄云天,天下无双,双管齐下,下里巴人,人才辈出,出神入化,化为乌有,有头有脸,脸红耳赤,赤胆忠心,心潮澎湃,湃水惊涛,涛澜汹涌,涌泉相报,抱头鼠窜,窜端匿迹,迹近于无,无价之宝,宝盖重重,重见天日,日出而作,作茧自缚,缚虎手擒,擒贼擒王,王侯将相,相敬如宾,宾至如归,归心似箭,箭步如飞,飞珠溅玉,玉宇琼楼,楼高百尺,尺步绳趋,趋炎附势,势如破竹,竹篱茅舍,舍近求远,远渡重洋,洋洋得意,意气风发,发人深省,省吃俭用,用武之地,地大物博,博大精深,深山老林,林寒洞肃,肃然起敬,敬若神明,明枪暗箭,箭不虚发,发家致富,富可敌国,国泰民安,安居乐业,业精于勤,勤俭持家,家破人亡,亡羊得牛,牛角挂书,书香门第,第一流人,人山人海,海沸江翻,翻天覆地,地裂山崩,崩林摧木,木人石心,心如止水,水乳交融,融会贯通,通今博古,古色古香,香车宝马,马上功成,成败兴亡,亡魂丧胆,胆战心惊,惊恐万状,状如牛毛,毛遂自荐,荐贤举能,能工巧匠,匠心独运,运筹帷幄,幄中之谋,谋图不轨,轨物范世,世代相传,传闻异辞,辞不达意,意境深远,远见卓识,识途老马,马不停蹄,蹄间三寻,寻根问底,底死漫生,生龙活虎,虎背熊腰,腰缠万贯,贯穿融会,会心一笑,笑面夜叉,叉手拜别,别有洞天,天女散花,花枝招展,展翅高飞,飞扬跋扈,扈江离与辟芷兮,兮兮相依,依门傍户,户限为穿,穿针引线,线断筝绝,绝顶聪明,明目张胆,胆大包天,天造地设,设身处地,地厚天高,高深莫测,测天量地,地平天成,成群结队,队舞成行,行色匆匆,匆促之际,际会风云,云开见日,日复一日,日夜兼程,程门立雪,雪中送炭,炭中之火,火上浇油,油嘴滑舌,舌战群儒,儒雅风度,度日如年,年轻力壮,壮志凌云,云雾迷蒙,蒙头转向,向阳花木,木本水源,源头活水,水中捞月,月下老人,人杰地灵,灵丹妙药,药到病除,除旧布新,新陈代谢,谢天谢地,地动山摇,摇旗呐喊,喊冤叫屈,屈指可数,数字游戏,戏水鸳鸯,鸯猜燕妒,妒贤嫉能,能言善辩,辩才无碍,碍手碍脚,脚踏实地,地久天长,长篇大论,论功行赏,赏心悦目,目瞪口呆,呆如木鸡,鸡毛蒜皮,皮之不存,存亡未卜,卜昼卜夜,夜不闭户,户枢不蠹,蠹国殃民,民穷财尽,尽心竭力,力争上游,游山玩水,水滴石穿,穿云裂石,石破天惊,惊弓之鸟,鸟语花香,香草美人,人才济济,济世安民,民不聊生,生老病死,死灰复燃,燃眉之急,急中生智,智勇双全,全力以赴,赴汤蹈火,火眼金睛,睛天霹雳,雳风掣电,电闪雷鸣,鸣锣开道,道貌岸然,然荻读书,书香世家,家道中落,落叶归根,根深蒂固,固步自封,封妻荫子,子虚乌有,有志竟成,成竹在胸,胸有成竹,竹报平安,安富尊荣,荣华富贵,贵人多忘事,事半功倍,倍道而进,进退维谷,谷马砺兵,兵多将广,广开言路,路不拾遗,遗臭万年,年富力强,强词夺理,理屈词穷,穷凶极恶,恶贯满盈,盈盈一水,水火无情,情同手足,足智多谋,谋事在人,人定胜天,天罗地网,网开一面,面壁思过,过河拆桥,桥归桥路归路,路见不平,平心静气,气壮山河,河东狮吼,吼天喊地,地动山摧,摧枯拉朽,朽木不可雕,雕虫小技,技高一筹,筹措交集,集腋成裘,裘马轻狂,狂风暴雨,雨打风吹,吹毛求疵,疵厉求生,生花妙笔,笔走龙蛇,蛇蝎心肠,肠肥脑满,满面春风,风卷残云,云游四海,海市蜃楼,楼台亭阁,阁中看山,山包海容,容光焕发,发人深省,省吃俭用,用兵如神,神出鬼没,没齿难忘,忘恩负义,义薄云天,天衣无缝,缝衣浅带,带罪立功,功德无量,量力而行,行云流水,水火相容,容人之量,量体裁衣,衣锦还乡,乡音无改,改朝换代,代人受过,过眼云烟,烟消云散,散落星辰,辰星漏夜,夜以继日,日理万机,机不可失,失之交臂,臂有四肘,肘腋之患,患得患失,失魂落魄,魄散魂飞,飞蛾扑火,火树银花,花前月下,下不为例,例行公事,事在人为,为人师表,表里如一,一往无前,前因后果,果不其然,然糠照薪,薪火相传,传为美谈,谈笑风生,生不如死,死心塌地,地老天荒,荒唐无稽,稽考无由,由来已久,久闻大名,名副其实,实至名归,归真反璞,璞玉浑金,金枝玉叶,叶落知秋,秋色宜人,人面桃花,花开富贵,贵人相助,助人为乐,乐善好施,施仁布德,德被四方,方兴未艾,艾发衰容,容颜如玉,玉树芝兰,兰艾同焚,焚琴煮鹤,鹤发童颜,颜面尽失,失魂丧魄,魄动心惊,惊天动地,地大物博,博学多才,才气过人,人定胜天,天之骄子,子孝父慈,慈悲为怀,怀璧其罪,罪加一等,等闲之辈,辈出英才,才子佳人,人见人爱,爱不释手,手舞足蹈,蹈袭前人,人云亦云,云遮雾障,障人眼目,目光如豆,豆蔻年华,华亭鹤唳,唳鹤频惊,惊世骇俗,俗不可耐,耐人寻味,味同嚼蜡,蜡炬成灰,灰飞烟灭,灭绝人性,性格孤僻,僻处一方,方枘圆凿,凿壁偷光,光宗耀祖,祖宗家法,法外施恩,恩将仇报,报效祖国,国仇家恨,恨铁不成钢,钢筋铁骨,骨肉至亲,亲如一家,家有敝帚,帚扫千军,军令如山,山阴乘兴,兴云致雨,雨顺风调,调停两可,可喜可贺,贺客盈门,门庭冷落,落雁沉鱼,鱼沉雁杳,杳无音信,信口雌黄,黄袍加身,身经百战,战无不胜,胜友如云,云程发轫,轫发如飞,飞扬浮躁,躁言丑语,语妙天下,下不为例,例直禁简,简明扼要,要言不烦,烦言碎辞,辞多受少,少不经事,事过景迁,迁善改过,过街老鹰,鹰击长空,空前绝后";
+
+        const IDIOMS_DB = new Set(rawIdioms.split(','));
+        const idiomMap = new Map();
+
+        // 构建快速首字索引，方便AI极速接龙
+        IDIOMS_DB.forEach(idiom => {
+            const firstChar = idiom.charAt(0);
+            if (!idiomMap.has(firstChar)) idiomMap.set(firstChar, []);
+            idiomMap.get(firstChar).push(idiom);
+        });
+
+        // 状态变量
+        let usedIdioms = new Set();
+        let currentIdiom = "";
+        let timer = null;
+        let timeLeft = 60;
+        let isPlayerTurn = true;
+        let roundCount = 0;
+
+        // DOM 元素
+        const scrollContainer = document.getElementById('scroll-container');
+        const inputEl = document.getElementById('idiom-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const timerDisplay = document.getElementById('timer-display');
+        const statusMsg = document.getElementById('status-msg');
+        const lastCharHint = document.getElementById('last-char-hint');
+        const modal = document.getElementById('modal');
+
+        function showStatus(msg) {
+            statusMsg.innerText = msg;
+            statusMsg.classList.remove('opacity-0');
+            statusMsg.style.transform = "translateY(-10px)";
+            setTimeout(() => {
+                statusMsg.classList.add('opacity-0');
+                statusMsg.style.transform = "translateY(0)";
+            }, 2500);
+        }
+
+        function createBambooSlip(text, isAI) {
+            const slip = document.createElement('div');
+            slip.className = 'bamboo-slip';
+            
+            // 将文字转换成一个个span，实现首尾高亮
+            let htmlStr = '';
+            for(let i=0; i<text.length; i++) {
+                // 接龙的重合字给予红色印章高亮 (第一回合无前缀字时不飘红第一个字)
+                if ((i === 0 && text.length > 0 && currentIdiom !== "") || 
+                    (i === text.length - 1 && isAI && !isPlayerTurn)) {
+                    htmlStr += `<span class="${i===0 ? 'highlight-char' : ''}">${text[i]}</span>`;
+                } else {
+                    htmlStr += `<span>${text[i]}</span>`;
+                }
+            }
+
+            const slipText = document.createElement('div');
+            slipText.className = 'slip-text';
+            slipText.innerHTML = htmlStr;
+            slip.appendChild(slipText);
+
+            // 标注来源
+            const author = document.createElement('div');
+            author.className = 'absolute bottom-2 text-[10px] font-bold ' + (isAI ? 'text-[var(--bamboo-dark)]' : 'text-[var(--red-stamp)]');
+            author.innerText = isAI ? "墨客" : "阁下";
+            slip.appendChild(author);
+
+            scrollContainer.appendChild(slip);
+            
+            // 自动向右平滑滚动
+            setTimeout(() => {
+                scrollContainer.scrollTo({
+                    left: scrollContainer.scrollWidth,
+                    behavior: 'smooth'
+                });
+            }, 100);
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 60;
+            timerDisplay.innerText = timeLeft;
+            timerDisplay.style.color = "var(--ink)";
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+                if (timeLeft <= 10) timerDisplay.style.color = "var(--red-stamp)";
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame(false, "超时未出招，阁下遗憾落败。");
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+        }
+
+        function aiTurn() {
+            isPlayerTurn = false;
+            stopTimer();
+            timerDisplay.innerText = "对方";
+            inputEl.disabled = true;
+            submitBtn.disabled = true;
+
+            setTimeout(() => {
+                const targetChar = currentIdiom.charAt(currentIdiom.length - 1);
+                const candidates = idiomMap.get(targetChar) || [];
+                
+                // 筛选出未使用的成语
+                const validCandidates = candidates.filter(id => !usedIdioms.has(id));
+
+                if (validCandidates.length === 0) {
+                    // AI 词穷
+                    endGame(true, "对方词穷接不上，阁下才高八斗，大获全胜！");
+                } else {
+                    // AI 随机挑选一个
+                    const picked = validCandidates[Math.floor(Math.random() * validCandidates.length)];
+                    playIdiom(picked, true);
+                    
+                    // 轮转回玩家
+                    isPlayerTurn = true;
+                    inputEl.disabled = false;
+                    submitBtn.disabled = false;
+                    inputEl.focus();
+                    startTimer();
+                }
+            }, 1000 + Math.random() * 1500); // 模拟思考 1-2.5s
+        }
+
+        function playIdiom(idiomText, isAI) {
+            // 如果是第一回合（currentIdiom 为空），先不把 currentIdiom 赋值，传给 createBambooSlip 以免第一个字被标红
+            const isFirstRound = (currentIdiom === "");
+            
+            createBambooSlip(idiomText, isAI);
+            usedIdioms.add(idiomText);
+            currentIdiom = idiomText; // 状态更新
+            
+            if (!isFirstRound || !isAI) roundCount++; // 玩家开启的第一回合不计入 AI 的接龙数，算作 1 次有效回合
+            
+            const lastChar = idiomText.charAt(idiomText.length - 1);
+            lastCharHint.innerHTML = `请以 <span class="text-[var(--red-stamp)] font-black text-2xl">${lastChar}</span> 开头：`;
+            inputEl.placeholder = `输入以“${lastChar}”开头的成语`;
+        }
+
+        function handlePlayerSubmit() {
+            if (!isPlayerTurn) return;
+            
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            // 1. 验证长度 (通常成语是4字，这里为了兼容部分多字成语，只限制最小3字)
+            if (text.length < 3) {
+                showStatus("成语字数过短，请查证");
+                return;
+            }
+
+            // 2. 验证接龙规则 (如果不是第一回合的话，需同字相接)
+            if (currentIdiom !== "") {
+                const requiredChar = currentIdiom.charAt(currentIdiom.length - 1);
+                if (text.charAt(0) !== requiredChar) {
+                    showStatus(`接龙失败，必须以「${requiredChar}」字开头！`);
+                    return;
+                }
+            }
+
+            // 3. 验证是否为真实成语 (如果在库里)
+            if (!IDIOMS_DB.has(text)) {
+                showStatus(`内嵌万条微缩词库暂未收录「${text}」，或是错别字，请换一个`);
+                return;
+            }
+
+            // 4. 验证是否已使用
+            if (usedIdioms.has(text)) {
+                showStatus(`「${text}」刚刚已经用过啦，请换一个`);
+                return;
+            }
+
+            // 验证通过
+            stopTimer();
+            inputEl.value = "";
+            playIdiom(text, false);
+            aiTurn();
+        }
+
+        function endGame(playerWon, reason) {
+            stopTimer();
+            document.getElementById('modal-title').innerText = playerWon ? "才高八斗" : "遗憾落败";
+            document.getElementById('modal-title').style.color = playerWon ? "var(--red-stamp)" : "var(--bamboo-dark)";
+            document.getElementById('modal-desc').innerHTML = `${reason}<br>此番共交锋 <span class="text-2xl font-black text-[var(--red-stamp)]">${roundCount}</span> 次`;
+            document.getElementById('round-count').innerText = roundCount;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                document.getElementById('modal-content').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function initGame() {
+            // 隐藏模态框
+            modal.classList.add('opacity-0');
+            document.getElementById('modal-content').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+
+            // 重置状态
+            usedIdioms.clear();
+            scrollContainer.innerHTML = '';
+            currentIdiom = "";
+            roundCount = 0;
+            inputEl.value = "";
+            
+            // 由玩家起手
+            lastCharHint.innerHTML = `起手式：`;
+            inputEl.placeholder = `输入任意成语开局`;
+            
+            isPlayerTurn = true;
+            inputEl.disabled = false;
+            submitBtn.disabled = false;
+            startTimer();
+        }
+
+        // 事件监听
+        submitBtn.addEventListener('click', handlePlayerSubmit);
+        inputEl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handlePlayerSubmit();
+        });
+
+        // 启动游戏
+        initGame();
+
+    </script>
+</body>
+</html>

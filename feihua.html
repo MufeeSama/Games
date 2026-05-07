@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>飞花令 - 古风诗词对决</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
+
+        :root {
+            --paper-bg: #f5eedc;
+            --ink-dark: #2c2e2f;
+            --ink-light: #5a5c5d;
+            --seal-red: #a33131;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'STSong', 'SimSun', serif;
+            background-color: #e8e2d2;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            color: var(--ink-dark);
+            background-image: 
+                linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 0),
+                linear-gradient(rgba(0,0,0,0.03) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+
+        .paper-container {
+            background-color: var(--paper-bg);
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .ancient-border {
+            border: 2px solid var(--ink-dark);
+            padding: 4px;
+            position: relative;
+        }
+        .ancient-border::before {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px; right: 2px; bottom: 2px;
+            border: 1px solid var(--ink-light);
+        }
+
+        .seal-stamp {
+            color: var(--seal-red);
+            border: 2px solid var(--seal-red);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-weight: 900;
+            display: inline-block;
+            transform: rotate(-5deg);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(44, 46, 47, 0.2); border-radius: 10px; }
+
+        @keyframes fadeInRise {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .msg-bubble { animation: fadeInRise 0.4s ease-out forwards; }
+
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen w-screen">
+
+    <div class="paper-container w-full h-full sm:h-[90vh] sm:w-[420px] sm:rounded-lg overflow-hidden flex flex-col relative ancient-border">
+        
+        <div class="absolute -top-20 -right-20 w-64 h-64 bg-black/5 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-black/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- 开始界面 -->
+        <div id="screen-start" class="flex flex-col items-center justify-center h-full w-full absolute inset-0 z-10 transition-opacity duration-500 bg-[var(--paper-bg)]">
+            <div class="flex gap-4 mb-10">
+                <h1 class="text-6xl font-black vertical-text tracking-[0.3em] text-[var(--ink-dark)] drop-shadow-sm">飞花令</h1>
+                <div class="vertical-text text-sm text-[var(--ink-light)] mt-2 font-bold tracking-widest border-l border-[var(--ink-light)] pl-2">
+                    流觞曲水·诗酒趁年华
+                </div>
+            </div>
+            
+            <p class="text-[var(--ink-light)] text-sm mb-6 max-w-[80%] text-center leading-relaxed">
+                规则：请从下方抽取一个“令”字。<br>双方轮流说出包含该字的诗句，<br>系统已开启防乱编校验。
+            </p>
+
+            <div class="grid grid-cols-5 gap-3 w-4/5">
+                <button onclick="startGame('花')" class="w-12 h-12 rounded-full border border-[var(--ink-dark)] flex items-center justify-center text-xl font-bold hover:bg-[var(--ink-dark)] hover:text-[var(--paper-bg)] transition-colors">花</button>
+                <button onclick="startGame('月')" class="w-12 h-12 rounded-full border border-[var(--ink-dark)] flex items-center justify-center text-xl font-bold hover:bg-[var(--ink-dark)] hover:text-[var(--paper-bg)] transition-colors">月</button>
+                <button onclick="startGame('春')" class="w-12 h-12 rounded-full border border-[var(--ink-dark)] flex items-center justify-center text-xl font-bold hover:bg-[var(--ink-dark)] hover:text-[var(--paper-bg)] transition-colors">春</button>
+                <button onclick="startGame('风')" class="w-12 h-12 rounded-full border border-[var(--ink-dark)] flex items-center justify-center text-xl font-bold hover:bg-[var(--ink-dark)] hover:text-[var(--paper-bg)] transition-colors">风</button>
+                <button onclick="startGame('夜')" class="w-12 h-12 rounded-full border border-[var(--ink-dark)] flex items-center justify-center text-xl font-bold hover:bg-[var(--ink-dark)] hover:text-[var(--paper-bg)] transition-colors">夜</button>
+            </div>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="screen-game" class="flex flex-col h-full w-full absolute inset-0 opacity-0 pointer-events-none transition-opacity duration-500 z-20 bg-[var(--paper-bg)]">
+            <div class="h-16 border-b border-[var(--ink-light)]/30 flex items-center justify-between px-4 shrink-0 bg-[var(--paper-bg)]/80 backdrop-blur-sm z-10">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-[var(--ink-light)]">今日令字</span>
+                    <span id="current-keyword" class="seal-stamp text-xl">花</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm">剩余时间</span>
+                    <span id="timer-display" class="text-2xl font-black text-[var(--ink-dark)] w-8 text-center">120</span>
+                </div>
+            </div>
+
+            <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-20 relative"></div>
+
+            <div class="h-20 border-t border-[var(--ink-light)]/30 flex items-center px-4 gap-2 bg-[var(--paper-bg)] shrink-0 absolute bottom-0 w-full">
+                <input type="text" id="player-input" 
+                    class="flex-1 h-10 bg-transparent border-b-2 border-[var(--ink-dark)] px-2 outline-none font-serif text-lg placeholder:text-[var(--ink-light)]/50 focus:border-[var(--seal-red)] transition-colors"
+                    placeholder="请输入含关键字的诗句..."
+                    autocomplete="off">
+                <button id="submit-btn" class="px-4 h-10 border-2 border-[var(--ink-dark)] text-[var(--ink-dark)] font-bold hover:bg-[var(--ink-dark)] hover:text-[var(--paper-bg)] transition-colors">对答</button>
+            </div>
+            
+            <div id="toast" class="absolute top-20 left-1/2 -translate-x-1/2 bg-[var(--seal-red)] text-[var(--paper-bg)] px-4 py-2 rounded shadow-lg text-sm font-bold opacity-0 pointer-events-none transition-opacity duration-300 z-50 whitespace-nowrap">
+                提示信息
+            </div>
+        </div>
+
+        <!-- 结算界面 -->
+        <div id="screen-result" class="flex flex-col items-center justify-center h-full w-full absolute inset-0 z-30 opacity-0 pointer-events-none transition-opacity duration-500 bg-[var(--paper-bg)]/95 backdrop-blur-sm">
+            <h2 id="result-title" class="text-5xl font-black mb-4 text-[var(--ink-dark)] tracking-widest">胜出</h2>
+            <p id="result-desc" class="text-[var(--ink-light)] mb-8 text-center px-6 leading-loose border-y border-[var(--ink-light)]/30 py-4 w-4/5">
+                历经 0 轮交锋
+            </p>
+            <button onclick="resetGame()" class="px-8 py-3 border-2 border-[var(--ink-dark)] text-[var(--ink-dark)] font-bold text-lg hover:bg-[var(--ink-dark)] hover:text-[var(--paper-bg)] transition-colors">再来一局</button>
+        </div>
+
+    </div>
+
+    <script>
+        // 大幅扩充的诗词数据库（支持整句验证，玩家只需输入半句即可通过）
+        const poetryDB = {
+            '花': [
+                "夜来风雨声，花落知多少", "乱花渐欲迷人眼，浅草才能没马蹄", "接天莲叶无穷碧，映日荷花别样红", 
+                "沾衣欲湿杏花雨，吹面不寒杨柳风", "人面不知何处去，桃花依旧笑春风", "借问酒家何处有，牧童遥指杏花村", 
+                "晓看红湿处，花重锦官城", "感时花溅泪，恨别鸟惊心", "停车坐爱枫林晚，霜叶红于二月花", 
+                "山重水复疑无路，柳暗花明又一村", "待到重阳日，还来就菊花", "忽如一夜春风来，千树万树梨花开",
+                "落红不是无情物，化作春泥更护花", "正是江南好风景，落花时节又逢君", "无可奈何花落去，似曾相识燕归来",
+                "相见时难别亦难，东风无力百花残", "春江花月夜", "竹外桃花三两枝，春江水暖鸭先知", "花径不曾缘客扫，蓬门今始为君开",
+                "儿童急走追黄蝶，飞入菜花无处寻", "人闲桂花落，夜静春山空", "不是花中偏爱菊，此花开尽更无花",
+                "人间四月芳菲尽，山寺桃花始盛开", "西塞山前白鹭飞，桃花流水鳜鱼肥", "云想衣裳花想容，春风拂槛露华浓",
+                "去年今日此门中，人面桃花相映红", "只恐夜深花睡去，故烧高烛照红妆", "春花秋月何时了，往事知多少",
+                "日出江花红胜火，春来江水绿如蓝", "花开堪折直须折，莫待无花空折枝", "杨花落尽子规啼，闻道龙标过五溪",
+                "稻花香里说丰年，听取蛙声一片", "百啭千声随意移，山花红紫树高低", "小楼一夜听春雨，深巷明朝卖杏花",
+                "迟日江山丽，春风花草香", "黄四娘家花满蹊，千朵万朵压枝低", "朱雀桥边野草花，乌衣巷口夕阳斜",
+                "花非花，雾非雾，夜半来，天明去", "唯有牡丹真国色，花开时节动京城", "春城无处不飞花，寒食东风御柳斜",
+                "飞花两岸照船红，百里榆堤半日风", "燕子来时新社，梨花落后清明", "花自飘零水自流，一种相思，两处闲愁",
+                "东风夜放花千树，更吹落，星如雨", "泪眼问花花不语，乱红飞过秋千去", "绿杨烟外晓寒轻，红杏枝头春意闹",
+                "繁华事散逐香尘，流水无情草自春", "桃花细逐杨花落，黄鸟时兼白鸟飞", "流水落花春去也，天上人间",
+                "待到秋来九月八，我花开后百花杀", "春江花朝秋月夜，往往取酒还独倾", "花褪残红青杏小",
+                "落花人独立，微雨燕双飞", "梅花香自苦寒来", "花有重开日，人无再少年",
+                "浔阳江头夜送客，枫叶荻花秋瑟瑟", "桃花潭水深千尺，不及汪伦送我情", "莫道不销魂，帘卷西风，人比黄花瘦"
+            ],
+            '月': [
+                "床前明月光，疑是地上霜", "举头望明月，低头思故乡", "海上生明月，天涯共此时", 
+                "明月几时有，把酒问青天", "月落乌啼霜满天，江枫渔火对愁眠", "秦时明月汉时关，万里长征人未还", 
+                "烟笼寒水月笼沙，夜泊秦淮近酒家", "一道残阳铺水中，半江瑟瑟半江红。可怜九月初三夜，露似真珠月似弓", 
+                "野旷天低树，江清月近人", "此时相望不相闻，愿逐月华流照君", "小时不识月，呼作白玉盘", 
+                "深林人不知，明月来相照", "俱怀逸兴壮思飞，欲上青天揽明月", "星垂平野阔，月涌大江流", 
+                "沧海月明珠有泪，蓝田日暖玉生烟", "春风又绿江南岸，明月何时照我还", "二十四桥明月夜，玉人何处教吹箫", 
+                "人有悲欢离合，月有阴晴圆缺", "春花秋月何时了，往事知多少", "明月松间照，清泉石上流",
+                "无言独上西楼，月如钩", "月上柳梢头，人约黄昏后", "梨花院落溶溶月，柳絮池塘淡淡风",
+                "露从今夜白，月是故乡明", "大漠沙如雪，燕山月似钩", "明月别枝惊鹊，清风半夜鸣蝉",
+                "长安一片月，万户捣衣声", "醉后不知天在水，满船清梦压星河", "月出惊山鸟，时鸣春涧中",
+                "月下飞天镜，云生结海楼", "明月出天山，苍茫云海间", "举杯邀明月，对影成三人",
+                "青天有月来几时，我今停杯一问之", "淮水东边旧时月，夜深还过女墙来", "江畔何人初见月，江月何年初照人",
+                "人生代代无穷已，江月年年望相似", "明月楼高休独倚，酒入愁肠，化作相思泪", "当时明月在，曾照彩云归",
+                "缺月挂疏桐，漏断人初静", "三十功名尘与土，八千里路云和月", "今宵酒醒何处？杨柳岸，晓风残月",
+                "夜月一帘幽梦，春风十里柔情", "更深月色半人家，北斗阑干南斗斜", "峨眉山月半轮秋，影入平羌江水流",
+                "月明星稀，乌鹊南飞", "今人不见古时月，今月曾经照古人", "寻常一样窗前月，才有梅花便不同",
+                "片云天共远，永夜月同孤", "清风明月本无价，近水远山皆有情", "凉月如眉挂柳湾，越中山色镜中看"
+            ],
+            '春': [
+                "春眠不觉晓，处处闻啼鸟", "好雨知时节，当春乃发生", "野火烧不尽，春风吹又生", 
+                "谁言寸草心，报得三春晖", "国破山河在，城春草木深", "春蚕到死丝方尽，蜡炬成灰泪始干", 
+                "春色满园关不住，一枝红杏出墙来", "等闲识得东风面，万紫千红总是春", "竹外桃花三两枝，春江水暖鸭先知", 
+                "阳春布德泽，万物生光辉", "人面不知何处去，桃花依旧笑春风", "忽如一夜春风来，千树万树梨花开", 
+                "春风又绿江南岸，明月何时照我还", "胜日寻芳泗水滨，无边光景一时新", "春色恼人眠不得，月移花影上栏杆", 
+                "沉舟侧畔千帆过，病树前头万木春", "春风得意马蹄疾，一日看尽长安花", "爆竹声中一岁除，春风送暖入屠苏", 
+                "红豆生南国，春来发几枝", "不知细叶谁裁出，二月春风似剪刀", "日出江花红胜火，春来江水绿如蓝", 
+                "无意苦争春，一任群芳妒", "相见时难别亦难，东风无力百花残", "春潮带雨晚来急，野渡无人舟自横",
+                "羌笛何须怨杨柳，春风不度玉门关", "长恨春归无觅处，不知转入此中来", "天街小雨润如酥，草色遥看近却无",
+                "春城无处不飞花，寒食东风御柳斜", "春江潮水连海平，海上明月共潮生", "春花秋月何时了，往事知多少",
+                "流水落花春去也，天上人间", "寂寞深闺，柔肠一寸愁千缕。惜春春去，几点催花雨", "芳树无人花自落，春山一路鸟空啼",
+                "春水碧于天，画船听雨眠", "春风桃李花开日，秋雨梧桐叶落时", "迟日江山丽，春风花草香",
+                "人闲桂花落，夜静春山空", "云想衣裳花想容，春风拂槛露华浓", "小楼一夜听春雨，深巷明朝卖杏花",
+                "夜月一帘幽梦，春风十里柔情", "风乍起，吹皱一池春水", "最是一年春好处，绝胜烟柳满皇都",
+                "春雨断桥人不度，小舟撑出柳阴来", "白雪却嫌春色晚，故穿庭树作飞花", "春宵一刻值千金，花有清香月有阴"
+            ],
+            '风': [
+                "夜来风雨声，花落知多少", "野火烧不尽，春风吹又生", "忽如一夜春风来，千树万树梨花开", 
+                "沾衣欲湿杏花雨，吹面不寒杨柳风", "长风破浪会有时，直挂云帆济沧海", "秋风萧瑟，洪波涌起", 
+                "九万里风鹏正举", "相见时难别亦难，东风无力百花残", "不知细叶谁裁出，二月春风似剪刀", 
+                "林暗草惊风，将军夜引弓", "大风起兮云飞扬", "昨夜西风凋碧树，独上高楼，望尽天涯路", 
+                "随风潜入夜，润物细无声", "柴门闻犬吠，风雪夜归人", "溪云初起日沉阁，山雨欲来风满楼", 
+                "风急天高猿啸哀，渚清沙白鸟飞回", "千里莺啼绿映红，水村山郭酒旗风", "爆竹声中一岁除，春风送暖入屠苏", 
+                "风萧萧兮易水寒，壮士一去兮不复还", "夜阑卧听风吹雨，铁马冰河入梦来", "明月别枝惊鹊，清风半夜鸣蝉",
+                "解落三秋叶，能开二月花。过江千尺浪，入竹万竿斜", "风吹草低见牛羊", "长风几万里，吹度玉门关",
+                "迟日江山丽，春风花草香", "羌笛何须怨杨柳，春风不度玉门关", "春城无处不飞花，寒食东风御柳斜",
+                "八月秋高风怒号，卷我屋上三重茅", "风住尘香花已尽，日晚倦梳头", "风乍起，吹皱一池春水",
+                "金风玉露一相逢，便胜却人间无数", "世事一场大梦，人生几度秋凉。夜来风叶已鸣廊", "细雨鱼儿出，微风燕子斜",
+                "春风桃李花开日，秋雨梧桐叶落时", "东风夜放花千树，更吹落，星如雨", "水晶帘动微风起，满架蔷薇一院香",
+                "今宵酒醒何处？杨柳岸，晓风残月", "云想衣裳花想容，春风拂槛露华浓", "人面不知何处去，桃花依旧笑春风",
+                "昨夜星辰昨夜风，画楼西畔桂堂东", "南风知我意，吹梦到西洲", "春风得意马蹄疾", "小楼昨夜又东风，故国不堪回首月明中"
+            ],
+            '夜': [
+                "春江花月夜", "夜来风雨声，花落知多少", "随风潜入夜，润物细无声", "烟笼寒水月笼沙，夜泊秦淮近酒家", 
+                "柴门闻犬吠，风雪夜归人", "姑苏城外寒山寺，夜半钟声到客船", "昨夜西风凋碧树", 
+                "昨夜星辰昨夜风，画楼西畔桂堂东", "夜阑卧听风吹雨，铁马冰河入梦来", "露从今夜白，月是故乡明", 
+                "何当共剪西窗烛，却话巴山夜雨时", "峨眉山月半轮秋，影入平羌江水流。夜发清溪向三峡，思君不见下渝州", 
+                "夜深忽梦少年事，梦啼妆泪红阑干", "月黑雁飞高，单于夜遁逃", "天阶夜色凉如水，卧看牵牛织女星", 
+                "二十四桥明月夜，玉人何处教吹箫", "只恐夜深花睡去，故烧高烛照红妆", "小楼一夜听春雨，深巷明朝卖杏花",
+                "可怜九月初三夜，露似真珠月似弓", "昼短苦夜长，何不秉烛游", "夜市千灯照碧云，高楼红袖客纷纷",
+                "夜深静卧百虫绝，清月出岭光入扉", "葡萄美酒夜光杯，欲饮琵琶马上催", "更深月色半人家，北斗阑干南斗斜",
+                "淮水东边旧时月，夜深还过女墙来", "花非花，雾非雾，夜半来，天明去", "夜月一帘幽梦，春风十里柔情",
+                "东风夜放花千树，更吹落，星如雨", "人闲桂花落，夜静春山空", "明月别枝惊鹊，清风半夜鸣蝉",
+                "浔阳江头夜送客，枫叶荻花秋瑟瑟", "小楼昨夜又东风，故国不堪回首月明中", "角声满天秋色里，塞上燕脂凝夜紫",
+                "夜吟应觉月光寒", "今夜偏知春气暖，虫声新透绿窗纱", "今夜鄜州月，闺中只独看", "夜雨剪春韭，新炊间黄粱"
+            ]
+        };
+
+        const screens = {
+            start: document.getElementById('screen-start'),
+            game: document.getElementById('screen-game'),
+            result: document.getElementById('screen-result')
+        };
+        const chatBox = document.getElementById('chat-box');
+        const playerInput = document.getElementById('player-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const timerDisplay = document.getElementById('timer-display');
+        const currentKeywordEl = document.getElementById('current-keyword');
+        const toastEl = document.getElementById('toast');
+
+        let currentKeyword = '';
+        let usedPoems = new Set(); // 存储被使用的"原句(无标点)"
+        let rounds = 0;
+        let timer = null;
+        let timeLeft = 120;
+        let isPlayerTurn = false;
+
+        // 去除标点用于比对
+        function stripPunctuation(str) {
+            return str.replace(/[，。！？、；：""''（）《》〈〉【】\s]/g, "");
+        }
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(el => {
+                el.classList.remove('z-20');
+                el.classList.add('opacity-0', 'pointer-events-none');
+            });
+            screens[screenName].classList.remove('opacity-0', 'pointer-events-none');
+            screens[screenName].classList.add('z-20');
+        }
+
+        function showToast(msg) {
+            toastEl.innerText = msg;
+            toastEl.classList.remove('opacity-0');
+            setTimeout(() => { toastEl.classList.add('opacity-0'); }, 2500);
+        }
+
+        function renderMessage(text, isAI) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-bubble flex w-full ${isAI ? 'justify-start' : 'justify-end'}`;
+            
+            const bubble = document.createElement('div');
+            if (isAI) {
+                bubble.className = "max-w-[85%] bg-[var(--ink-dark)] text-[var(--paper-bg)] px-4 py-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-md border-l-4 border-[var(--ink-light)] text-lg leading-relaxed relative";
+            } else {
+                bubble.className = "max-w-[85%] bg-[var(--paper-bg)] border-2 border-[var(--seal-red)] text-[var(--ink-dark)] px-4 py-3 rounded-tl-xl rounded-bl-xl rounded-br-xl shadow-md text-lg leading-relaxed relative";
+            }
+
+            const regex = new RegExp(currentKeyword, 'g');
+            const highlightedText = text.replace(regex, `<span class="${isAI ? 'text-[var(--seal-red)]' : 'text-[var(--seal-red)] font-bold'}">${currentKeyword}</span>`);
+            
+            if(isAI) {
+                 bubble.innerHTML = `<span class="absolute -top-4 left-0 text-xs text-[var(--ink-light)] font-bold">墨客</span>${highlightedText}`;
+            } else {
+                 bubble.innerHTML = `<span class="absolute -top-4 right-0 text-xs text-[var(--seal-red)] font-bold">阁下</span>${highlightedText}`;
+            }
+
+            wrapper.appendChild(bubble);
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function renderSystemMsg(text) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "msg-bubble flex w-full justify-center my-2";
+            wrapper.innerHTML = `<div class="text-xs text-[var(--ink-light)] bg-black/5 px-3 py-1 rounded-full">${text}</div>`;
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 120; // 考虑玩家需要打字，放宽至120秒
+            timerDisplay.innerText = timeLeft;
+            timerDisplay.style.color = "var(--ink-dark)";
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+                if (timeLeft <= 5) timerDisplay.style.color = "var(--seal-red)";
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame(false, "超时未作答，遗憾落败。");
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timer);
+        }
+
+        function aiTurn() {
+            isPlayerTurn = false;
+            stopTimer();
+            timerDisplay.innerText = "对方";
+            
+            renderSystemMsg("墨客正在思索中...");
+
+            setTimeout(() => {
+                const availablePoems = poetryDB[currentKeyword].filter(p => {
+                    const cleanP = stripPunctuation(p);
+                    for(let used of usedPoems) {
+                        // 如果原诗与已用过的诗句重合，不可再用
+                        if (used.includes(cleanP) || cleanP.includes(used)) return false;
+                    }
+                    return true;
+                });
+
+                chatBox.removeChild(chatBox.lastChild); 
+
+                if (availablePoems.length === 0) {
+                    endGame(true, "对方江郎才尽，阁下大获全胜！");
+                } else {
+                    const picked = availablePoems[Math.floor(Math.random() * availablePoems.length)];
+                    usedPoems.add(stripPunctuation(picked));
+                    
+                    // AI 回答时展示半句还是全句随机，增加真实感
+                    let showText = picked;
+                    if(picked.includes('，') && Math.random() > 0.5) {
+                         const parts = picked.split(/[，。]/).filter(s => s.includes(currentKeyword));
+                         if(parts.length > 0) showText = parts[0];
+                    }
+
+                    renderMessage(showText, true);
+                    rounds++;
+                    
+                    isPlayerTurn = true;
+                    playerInput.disabled = false;
+                    playerInput.focus();
+                    startTimer();
+                }
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function handlePlayerSubmit() {
+            if (!isPlayerTurn) return;
+            
+            let text = playerInput.value.trim();
+            if (!text) return;
+
+            // 1. 包含关键字
+            if (!text.includes(currentKeyword)) {
+                showToast(`必须包含关键字「${currentKeyword}」`);
+                return;
+            }
+
+            const cleanText = stripPunctuation(text);
+            if (cleanText.length < 3) {
+                showToast("诗句过短，请查证");
+                return;
+            }
+
+            // 2. 数据库校验防乱编
+            let isValidPoem = false;
+            let matchedDBPoem = ""; 
+            for (let p of poetryDB[currentKeyword]) {
+                const cleanDBText = stripPunctuation(p);
+                // 允许玩家输入整首诗的半句，或带标点的全句
+                if (cleanDBText.includes(cleanText) || cleanText.includes(cleanDBText)) {
+                    isValidPoem = true;
+                    matchedDBPoem = cleanDBText; // 记录对应的完整原句，防重复
+                    break;
+                }
+            }
+
+            if (!isValidPoem) {
+                showToast("未收录该诗或非古诗词，请换一句");
+                return;
+            }
+
+            // 3. 查重 (检查刚才记录的完整原句是否已经被使用过)
+            let isUsed = false;
+            for(let used of usedPoems) {
+                if (used === matchedDBPoem || used.includes(cleanText) || cleanText.includes(used)) {
+                    isUsed = true; break;
+                }
+            }
+            if (isUsed) {
+                showToast("这首诗刚才已经用过啦，请换一首");
+                return;
+            }
+
+            // 验证通过
+            stopTimer();
+            usedPoems.add(matchedDBPoem); // 将匹配到的完整原句加入已使用库
+            renderMessage(text, false);
+            playerInput.value = '';
+            playerInput.disabled = true;
+            
+            aiTurn();
+        }
+
+        function startGame(keyword) {
+            currentKeyword = keyword;
+            currentKeywordEl.innerText = keyword;
+            usedPoems.clear();
+            rounds = 0;
+            chatBox.innerHTML = '';
+            playerInput.value = '';
+            
+            showScreen('game');
+            renderSystemMsg(`飞花令始，今日考题为「${keyword}」字`);
+            
+            setTimeout(() => { aiTurn(); }, 800);
+        }
+
+        function endGame(playerWon, reason) {
+            stopTimer();
+            showScreen('result');
+            
+            document.getElementById('result-title').innerText = playerWon ? "大获全胜" : "遗憾落败";
+            document.getElementById('result-title').style.color = playerWon ? "var(--seal-red)" : "var(--ink-light)";
+            
+            document.getElementById('result-desc').innerHTML = `${reason}<br>共历经 <span class="text-[var(--seal-red)] font-bold text-xl">${rounds}</span> 轮交锋。`;
+        }
+
+        function resetGame() {
+            showScreen('start');
+        }
+
+        submitBtn.addEventListener('click', handlePlayerSubmit);
+        playerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handlePlayerSubmit();
+        });
+        
+        playerInput.addEventListener('focus', () => {
+            setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 300);
+        });
+
+    </script>
+</body>
+</html>

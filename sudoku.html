@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数独游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
+            max-width: 720px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-header {
+            margin-bottom: 16px;
+        }
+        .game-header h1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #1a1a2e;
+            margin-bottom: 2px;
+            font-size: 1.6em;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+        .game-header h1::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 1.2em;
+            background: linear-gradient(180deg, #0f3460, #e94560);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .game-header .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 0.85em;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-areas:
+                "board ctrls"
+                "board info";
+            gap: 12px 24px;
+        }
+        .game-left {
+            grid-area: board;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .game-controls {
+            grid-area: ctrls;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .game-info {
+            grid-area: info;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .difficulty-selector {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+        
+        .difficulty-btn {
+            padding: 6px 14px;
+            border: 2px solid #0f3460;
+            background: transparent;
+            color: #0f3460;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .difficulty-btn:hover {
+            background: rgba(15, 52, 96, 0.1);
+        }
+        
+        .difficulty-btn.active {
+            background: #0f3460;
+            color: white;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a1a2e, #0f3460);
+            color: white;
+            box-shadow: 0 4px 15px rgba(15, 52, 96, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 52, 96, 0.6);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.6);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.6);
+        }
+        
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        table {
+            border-collapse: collapse;
+            border: 3px solid #1a1a2e;
+        }
+        
+        td {
+            width: 44px;
+            height: 44px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #d0d0d0;
+            padding: 0;
+        }
+        
+        td:nth-child(3),
+        td:nth-child(6) {
+            border-right: 3px solid #1a1a2e;
+        }
+        
+        tr:nth-child(3) td,
+        tr:nth-child(6) td {
+            border-bottom: 3px solid #1a1a2e;
+        }
+        
+        .cell-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 1.25em;
+            font-weight: 600;
+            background: transparent;
+            outline: none;
+            color: #1a1a2e;
+            caret-color: #0f3460;
+        }
+        
+        .cell-input:focus {
+            background: rgba(15, 52, 96, 0.08);
+        }
+        
+        .cell-input.given {
+            color: #333;
+            font-weight: 700;
+        }
+        
+        .cell-input.user {
+            color: #0f3460;
+        }
+        
+        .cell-input.error {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        .cell-input.correct {
+            color: #27ae60;
+        }
+        
+        .cell-input.hint {
+            color: #f39c12;
+            animation: hintPulse 0.5s ease-in-out;
+        }
+        
+        .cell-input.same-number {
+            background: rgba(15, 52, 96, 0.06);
+        }
+        
+        .cell-input.related {
+            background: rgba(15, 52, 96, 0.04);
+        }
+        
+        @keyframes hintPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(5, auto);
+            gap: 6px;
+            justify-content: center;
+        }
+        
+        .num-btn {
+            width: 38px;
+            height: 38px;
+            border: 2px solid #0f3460;
+            background: white;
+            color: #0f3460;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        
+        .num-btn:hover {
+            background: #0f3460;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .num-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .erase-btn {
+            border-color: #e74c3c;
+            color: #e74c3c;
+            font-size: 0.85em;
+        }
+        
+        .erase-btn:hover {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            font-size: 0.85em;
+        }
+        
+        .timer {
+            color: #0f3460;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+        
+        .mistakes {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        .score {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .message {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9em;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .message.success {
+            background: rgba(39, 174, 96, 0.15);
+            color: #27ae60;
+        }
+        
+        .message.error-msg {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        
+        .message.info {
+            background: rgba(15, 52, 96, 0.1);
+            color: #0f3460;
+        }
+        
+        .pencil-marks {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 100%;
+            height: 100%;
+            font-size: 0.55em;
+            color: #888;
+            font-weight: 400;
+        }
+        
+        .pencil-mark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                max-width: 480px;
+                padding: 20px;
+            }
+            
+            .main-layout {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .game-controls {
+                order: -1;
+            }
+            .game-left {
+                order: 0;
+            }
+            .game-info {
+                order: 1;
+            }
+            
+            .game-controls, .game-info {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .controls {
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .number-pad {
+                display: flex;
+                gap: 6px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            td {
+                width: 40px;
+                height: 40px;
+            }
+            .cell-input {
+                font-size: 1.15em;
+            }
+            .num-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 1em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+            
+            td {
+                width: 34px;
+                height: 34px;
+            }
+            .cell-input {
+                font-size: 1em;
+            }
+            .num-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9em;
+            }
+            .game-header h1 {
+                font-size: 1.3em;
+            }
+            .difficulty-btn {
+                padding: 5px 10px;
+                font-size: 0.75em;
+            }
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.75em;
+            }
+            .number-pad {
+                gap: 4px;
+            }
+            .controls {
+                gap: 6px;
+            }
+            .game-controls, .game-info {
+                gap: 8px;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            .container {
+                padding: 10px;
+            }
+            
+            td {
+                width: 28px;
+                height: 28px;
+            }
+            .cell-input {
+                font-size: 0.85em;
+            }
+            .num-btn {
+                width: 26px;
+                height: 26px;
+                font-size: 0.8em;
+                border-radius: 8px;
+            }
+            .game-header h1 {
+                font-size: 1.2em;
+            }
+            .difficulty-btn {
+                padding: 4px 8px;
+                font-size: 0.7em;
+            }
+            .btn {
+                padding: 5px 10px;
+                font-size: 0.7em;
+            }
+            .info-bar {
+                padding: 6px 8px;
+                font-size: 0.7em;
+            }
+            .number-pad {
+                gap: 3px;
+            }
+            .controls {
+                gap: 5px;
+            }
+            .game-controls, .game-info {
+                gap: 6px;
+            }
+            .main-layout {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1>数独</h1>
+            <p class="subtitle">经典数字逻辑游戏</p>
+        </div>
+        <div class="main-layout">
+            <div class="game-left">
+                <div class="grid-container">
+                    <table id="sudokuGrid"></table>
+                </div>
+                <div class="number-pad">
+                    <button class="num-btn" data-num="1">1</button>
+                    <button class="num-btn" data-num="2">2</button>
+                    <button class="num-btn" data-num="3">3</button>
+                    <button class="num-btn" data-num="4">4</button>
+                    <button class="num-btn" data-num="5">5</button>
+                    <button class="num-btn" data-num="6">6</button>
+                    <button class="num-btn" data-num="7">7</button>
+                    <button class="num-btn" data-num="8">8</button>
+                    <button class="num-btn" data-num="9">9</button>
+                    <button class="num-btn erase-btn" data-num="0">✕</button>
+                </div>
+            </div>
+            <div class="game-controls">
+                <div class="difficulty-selector">
+                    <button class="difficulty-btn active" data-difficulty="easy">简单</button>
+                    <button class="difficulty-btn" data-difficulty="medium">中等</button>
+                    <button class="difficulty-btn" data-difficulty="hard">困难</button>
+                    <button class="difficulty-btn" data-difficulty="expert">专家</button>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="newGameBtn">🎮 新游戏</button>
+                    <button class="btn btn-success" id="checkBtn">✅ 验证答案</button>
+                    <button class="btn btn-warning" id="hintBtn">💡 提示</button>
+                    <button class="btn btn-secondary" id="undoBtn">↩️ 撤销</button>
+                </div>
+            </div>
+            <div class="game-info">
+                <div class="info-bar">
+                    <span class="timer">⏱ <span id="timerDisplay">00:00</span></span>
+                    <span class="mistakes">❌ 错误: <span id="mistakesCount">0</span>/3</span>
+                    <span class="score">🏆 <span id="scoreDisplay">0</span></span>
+                </div>
+                <div class="message" id="messageBox"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            let board = [];
+            let solution = [];
+            let givenCells = [];
+            let selectedRow = -1;
+            let selectedCol = -1;
+            let mistakes = 0;
+            let maxMistakes = 3;
+            let score = 0;
+            let timerInterval = null;
+            let elapsedSeconds = 0;
+            let gameActive = false;
+            let gameCompleted = false;
+            let undoStack = [];
+            let difficulty = 'easy';
+            let pencilMode = false;
+            
+            const difficultySettings = {
+                easy: { remove: 36 },
+                medium: { remove: 46 },
+                hard: { remove: 52 },
+                expert: { remove: 56 }
+            };
+            
+            function init() {
+                setupDifficultyButtons();
+                setupControlButtons();
+                setupNumberPad();
+                createGrid();
+                generateNewGame();
+                gameActive = true;
+                startTimer();
+                setupKeyboardHandlers();
+            }
+            
+            function setupDifficultyButtons() {
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        difficulty = this.dataset.difficulty;
+                        generateNewGame();
+                        resetGameState();
+                    });
+                });
+            }
+            
+            function setupControlButtons() {
+                document.getElementById('newGameBtn').addEventListener('click', () => {
+                    generateNewGame();
+                    resetGameState();
+                });
+                
+                document.getElementById('checkBtn').addEventListener('click', checkSolution);
+                document.getElementById('hintBtn').addEventListener('click', giveHint);
+                document.getElementById('undoBtn').addEventListener('click', undo);
+            }
+            
+            function setupNumberPad() {
+                document.querySelectorAll('.num-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const num = parseInt(this.dataset.num);
+                        if (num === 0) {
+                            eraseCell();
+                        } else {
+                            inputNumber(num);
+                        }
+                    });
+                });
+            }
+            
+            function setupKeyboardHandlers() {
+                document.addEventListener('keydown', function(e) {
+                    if (!gameActive || gameCompleted) return;
+                    
+                    if (e.key >= '1' && e.key <= '9') {
+                        inputNumber(parseInt(e.key));
+                    } else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
+                        eraseCell();
+                    } else if (e.key === 'ArrowUp' && selectedRow > 0) {
+                        selectCell(selectedRow - 1, selectedCol);
+                    } else if (e.key === 'ArrowDown' && selectedRow < 8) {
+                        selectCell(selectedRow + 1, selectedCol);
+                    } else if (e.key === 'ArrowLeft' && selectedCol > 0) {
+                        selectCell(selectedRow, selectedCol - 1);
+                    } else if (e.key === 'ArrowRight' && selectedCol < 8) {
+                        selectCell(selectedRow, selectedCol + 1);
+                    } else if (e.key === 'p' || e.key === 'P') {
+                        pencilMode = !pencilMode;
+                        showMessage(pencilMode ? '📝 笔记模式：开启' : '📝 笔记模式：关闭', 'info');
+                    }
+                });
+            }
+            
+            function generateNewGame() {
+                solution = generateSolvedBoard();
+                board = JSON.parse(JSON.stringify(solution));
+                givenCells = [];
+                
+                const settings = difficultySettings[difficulty];
+                const cellsToRemove = settings.remove;
+                
+                let positions = [];
+                for (let i = 0; i < 81; i++) {
+                    positions.push(i);
+                }
+                positions = shuffleArray(positions);
+                
+                for (let i = 0; i < cellsToRemove; i++) {
+                    const pos = positions[i];
+                    const row = Math.floor(pos / 9);
+                    const col = pos % 9;
+                    board[row][col] = 0;
+                }
+                
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] !== 0) {
+                            givenCells.push({ row: r, col: c });
+                        }
+                    }
+                }
+                
+                undoStack = [];
+                renderBoard();
+            }
+            
+            function generateSolvedBoard() {
+                let board = Array.from({ length: 9 }, () => Array(9).fill(0));
+                fillBoard(board);
+                return board;
+            }
+            
+            function fillBoard(board) {
+                const empty = findEmptyCell(board);
+                if (!empty) return true;
+                
+                const [row, col] = empty;
+                const numbers = shuffleArray([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+                
+                for (const num of numbers) {
+                    if (isValidPlacement(board, row, col, num)) {
+                        board[row][col] = num;
+                        if (fillBoard(board)) return true;
+                        board[row][col] = 0;
+                    }
+                }
+                
+                return false;
+            }
+            
+            function findEmptyCell(board) {
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] === 0) return [r, c];
+                    }
+                }
+                return null;
+            }
+            
+            function isValidPlacement(board, row, col, num) {
+                for (let i = 0; i < 9; i++) {
+                    if (board[row][i] === num) return false;
+                }
+                
+                for (let i = 0; i < 9; i++) {
+                    if (board[i][col] === num) return false;
+                }
+                
+                const boxRow = Math.floor(row / 3) * 3;
+                const boxCol = Math.floor(col / 3) * 3;
+                for (let r = boxRow; r < boxRow + 3; r++) {
+                    for (let c = boxCol; c < boxCol + 3; c++) {
+                        if (board[r][c] === num) return false;
+                    }
+                }
+                
+                return true;
+            }
+            
+            function shuffleArray(array) {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+            
+            function createGrid() {
+                const table = document.getElementById('sudokuGrid');
+                table.innerHTML = '';
+                
+                for (let r = 0; r < 9; r++) {
+                    const tr = document.createElement('tr');
+                    for (let c = 0; c < 9; c++) {
+                        const td = document.createElement('td');
+                        td.dataset.row = r;
+                        td.dataset.col = c;
+                        td.addEventListener('click', () => selectCell(r, c));
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+            }
+            
+            function renderBoard() {
+                const table = document.getElementById('sudokuGrid');
+                const cells = table.querySelectorAll('td');
+                
+                cells.forEach(td => {
+                    const r = parseInt(td.dataset.row);
+                    const c = parseInt(td.dataset.col);
+                    td.innerHTML = '';
+                    
+                    if (board[r][c] !== 0) {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'cell-input';
+                        input.value = board[r][c];
+                        input.readOnly = true;
+                        input.setAttribute('inputmode', 'none');
+                        
+                        if (isGivenCell(r, c)) {
+                            input.classList.add('given');
+                        } else {
+                            input.classList.add('user');
+                            if (board[r][c] !== solution[r][c]) {
+                                input.classList.add('error');
+                            }
+                        }
+                        
+                        td.appendChild(input);
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'cell-input';
+                        input.readOnly = true;
+                        input.setAttribute('inputmode', 'none');
+                        td.appendChild(input);
+                    }
+                });
+                
+                highlightRelatedCells();
+            }
+            
+            function selectCell(row, col) {
+                if (!gameActive || gameCompleted) return;
+                
+                selectedRow = row;
+                selectedCol = col;
+                
+                const table = document.getElementById('sudokuGrid');
+                const cells = table.querySelectorAll('td');
+                
+                cells.forEach(td => {
+                    td.style.background = '';
+                    td.style.boxShadow = '';
+                });
+                
+                if (isGivenCell(row, col)) {
+                    showMessage('⚠️ 这是预设数字，不能修改', 'info');
+                    return;
+                }
+                
+                const selectedTd = table.querySelector(`td[data-row="${row}"][data-col="${col}"]`);
+                if (selectedTd) {
+                    selectedTd.style.background = 'rgba(15, 52, 96, 0.15)';
+                    selectedTd.style.boxShadow = 'inset 0 0 0 2px #0f3460';
+                }
+                
+                highlightRelatedCells();
+            }
+            
+            function highlightRelatedCells() {
+                if (selectedRow < 0 || selectedCol < 0) return;
+                
+                const table = document.getElementById('sudokuGrid');
+                const cells = table.querySelectorAll('td');
+                
+                cells.forEach(td => {
+                    const r = parseInt(td.dataset.row);
+                    const c = parseInt(td.dataset.col);
+                    
+                    if (r === selectedRow && c === selectedCol) return;
+                    
+                    let highlight = false;
+                    
+                    if (r === selectedRow || c === selectedCol) {
+                        highlight = true;
+                    }
+                    
+                    const boxRow = Math.floor(selectedRow / 3) * 3;
+                    const boxCol = Math.floor(selectedCol / 3) * 3;
+                    if (r >= boxRow && r < boxRow + 3 && c >= boxCol && c < boxCol + 3) {
+                        highlight = true;
+                    }
+                    
+                    if (board[selectedRow][selectedCol] !== 0 && board[r][c] === board[selectedRow][selectedCol]) {
+                        highlight = true;
+                    }
+                    
+                    if (highlight) {
+                        td.style.background = 'rgba(15, 52, 96, 0.06)';
+                    }
+                });
+            }
+            
+            function inputNumber(num) {
+                if (!gameActive || gameCompleted) return;
+                if (selectedRow < 0 || selectedCol < 0) {
+                    showMessage('请先点击选择一个空格', 'info');
+                    return;
+                }
+                if (isGivenCell(selectedRow, selectedCol)) {
+                    showMessage('⚠️ 预设数字不能修改', 'info');
+                    return;
+                }
+                
+                undoStack.push({
+                    row: selectedRow,
+                    col: selectedCol,
+                    oldValue: board[selectedRow][selectedCol]
+                });
+                
+                board[selectedRow][selectedCol] = num;
+                
+                if (num !== solution[selectedRow][selectedCol]) {
+                    mistakes++;
+                    updateMistakesDisplay();
+                    
+                    if (mistakes >= maxMistakes) {
+                        gameOver();
+                        return;
+                    }
+                    
+                    showMessage('❌ 数字不正确，请重试', 'error-msg');
+                } else {
+                    score += 10;
+                    updateScoreDisplay();
+                    showMessage('✅ 正确！', 'success');
+                    setTimeout(() => showMessage('', ''), 1500);
+                }
+                
+                renderBoard();
+                selectCell(selectedRow, selectedCol);
+                checkCompletion();
+            }
+            
+            function eraseCell() {
+                if (!gameActive || gameCompleted) return;
+                if (selectedRow < 0 || selectedCol < 0) return;
+                if (isGivenCell(selectedRow, selectedCol)) return;
+                if (board[selectedRow][selectedCol] === 0) return;
+                
+                undoStack.push({
+                    row: selectedRow,
+                    col: selectedCol,
+                    oldValue: board[selectedRow][selectedCol]
+                });
+                
+                board[selectedRow][selectedCol] = 0;
+                renderBoard();
+                selectCell(selectedRow, selectedCol);
+            }
+            
+            function undo() {
+                if (!gameActive || gameCompleted) return;
+                if (undoStack.length === 0) {
+                    showMessage('没有可撤销的操作', 'info');
+                    return;
+                }
+                
+                const lastAction = undoStack.pop();
+                board[lastAction.row][lastAction.col] = lastAction.oldValue;
+                renderBoard();
+                selectCell(lastAction.row, lastAction.col);
+                showMessage('↩️ 已撤销', 'info');
+                setTimeout(() => showMessage('', ''), 1500);
+            }
+            
+            function isGivenCell(row, col) {
+                return givenCells.some(cell => cell.row === row && cell.col === col);
+            }
+            
+            function checkSolution() {
+                if (!gameActive || gameCompleted) return;
+                
+                let allFilled = true;
+                let allCorrect = true;
+                
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] === 0) {
+                            allFilled = false;
+                        } else if (board[r][c] !== solution[r][c]) {
+                            allCorrect = false;
+                        }
+                    }
+                }
+                
+                if (!allFilled) {
+                    showMessage('📋 还有空格未填写完成', 'info');
+                    highlightErrors();
+                } else if (!allCorrect) {
+                    showMessage('❌ 存在错误，请检查红色标记的格子', 'error-msg');
+                    highlightErrors();
+                } else {
+                    completeGame();
+                }
+            }
+            
+            function highlightErrors() {
+                const table = document.getElementById('sudokuGrid');
+                const cells = table.querySelectorAll('td');
+                
+                cells.forEach(td => {
+                    const r = parseInt(td.dataset.row);
+                    const c = parseInt(td.dataset.col);
+                    const input = td.querySelector('input');
+                    
+                    if (input && !isGivenCell(r, c) && board[r][c] !== 0 && board[r][c] !== solution[r][c]) {
+                        input.classList.add('error');
+                    }
+                });
+            }
+            
+            function giveHint() {
+                if (!gameActive || gameCompleted) return;
+                
+                let emptyCells = [];
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] === 0 || (!isGivenCell(r, c) && board[r][c] !== solution[r][c])) {
+                            emptyCells.push({ row: r, col: c });
+                        }
+                    }
+                }
+                
+                if (emptyCells.length === 0) return;
+                
+                const hint = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                
+                undoStack.push({
+                    row: hint.row,
+                    col: hint.col,
+                    oldValue: board[hint.row][hint.col]
+                });
+                
+                board[hint.row][hint.col] = solution[hint.row][hint.col];
+                score = Math.max(0, score - 5);
+                updateScoreDisplay();
+                
+                renderBoard();
+                selectCell(hint.row, hint.col);
+                
+                const table = document.getElementById('sudokuGrid');
+                const td = table.querySelector(`td[data-row="${hint.row}"][data-col="${hint.col}"]`);
+                const input = td ? td.querySelector('input') : null;
+                if (input) {
+                    input.classList.add('hint');
+                    setTimeout(() => input.classList.remove('hint'), 500);
+                }
+                
+                showMessage(`💡 提示：第${hint.row + 1}行第${hint.col + 1}列 = ${solution[hint.row][hint.col]}`, 'info');
+                setTimeout(() => showMessage('', ''), 2000);
+                
+                checkCompletion();
+            }
+            
+            function checkCompletion() {
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (board[r][c] !== solution[r][c]) return;
+                    }
+                }
+                completeGame();
+            }
+            
+            function completeGame() {
+                gameActive = false;
+                gameCompleted = true;
+                stopTimer();
+                
+                const bonusPoints = Math.max(0, 1000 - elapsedSeconds * 2);
+                score += bonusPoints;
+                updateScoreDisplay();
+                
+                showMessage(`🎉 恭喜！你完成了数独！获得 ${bonusPoints} 分奖励！总用时 ${formatTime(elapsedSeconds)}`, 'success');
+                
+                const table = document.getElementById('sudokuGrid');
+                const cells = table.querySelectorAll('td');
+                cells.forEach(td => {
+                    td.style.background = '';
+                    td.style.boxShadow = '';
+                    const input = td.querySelector('input');
+                    if (input && !isGivenCell(parseInt(td.dataset.row), parseInt(td.dataset.col))) {
+                        input.classList.add('correct');
+                    }
+                });
+            }
+            
+            function gameOver() {
+                gameActive = false;
+                stopTimer();
+                showMessage('💀 游戏结束！错误次数已达上限', 'error-msg');
+                
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        if (!isGivenCell(r, c)) {
+                            board[r][c] = solution[r][c];
+                        }
+                    }
+                }
+                renderBoard();
+            }
+            
+            function resetGameState() {
+                mistakes = 0;
+                score = 0;
+                undoStack = [];
+                selectedRow = -1;
+                selectedCol = -1;
+                gameActive = true;
+                gameCompleted = false;
+                
+                updateMistakesDisplay();
+                updateScoreDisplay();
+                showMessage('', '');
+                resetTimer();
+                
+                const table = document.getElementById('sudokuGrid');
+                const cells = table.querySelectorAll('td');
+                cells.forEach(td => {
+                    td.style.background = '';
+                    td.style.boxShadow = '';
+                });
+            }
+            
+            function updateMistakesDisplay() {
+                document.getElementById('mistakesCount').textContent = mistakes;
+            }
+            
+            function updateScoreDisplay() {
+                document.getElementById('scoreDisplay').textContent = score;
+            }
+            
+            function showMessage(text, type) {
+                const msgBox = document.getElementById('messageBox');
+                msgBox.textContent = text;
+                msgBox.className = 'message';
+                if (type) {
+                    msgBox.classList.add(type);
+                }
+            }
+            
+            function startTimer() {
+                stopTimer();
+                elapsedSeconds = 0;
+                updateTimerDisplay();
+                timerInterval = setInterval(() => {
+                    elapsedSeconds++;
+                    updateTimerDisplay();
+                }, 1000);
+            }
+            
+            function stopTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+            
+            function resetTimer() {
+                stopTimer();
+                elapsedSeconds = 0;
+                updateTimerDisplay();
+                startTimer();
+            }
+            
+            function updateTimerDisplay() {
+                document.getElementById('timerDisplay').textContent = formatTime(elapsedSeconds);
+            }
+            
+            function formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+            
+            init();
+        })();
+    </script>
+</body>
+</html>

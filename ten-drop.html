@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>十滴水 - 经典复刻版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            /* 模拟截图中的室内暗环境背景 */
+            background: radial-gradient(circle at 50% 40%, #64748b 0%, #334155 40%, #0f172a 100%);
+        }
+        /* 取消Canvas的点击高亮和默认交互 */
+        canvas {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none; 
+        }
+        /* 玻璃烧瓶特效 */
+        .glass-beaker {
+            box-shadow: inset 0 -10px 30px rgba(255,255,255,0.4), 0 0 20px rgba(0,255,0,0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row items-center justify-center gap-12 p-4 font-sans text-slate-800 overflow-hidden">
+
+    <!-- 游戏主区域 (玻璃质感网格) -->
+    <div class="relative w-full max-w-[480px] aspect-square bg-white/10 rounded-xl shadow-2xl overflow-hidden border-[8px] border-[#e0f6ff] backdrop-blur-sm">
+        <canvas id="gameCanvas" width="480" height="480" class="w-full h-full cursor-pointer"></canvas>
+
+        <!-- 模态框 (通关/游戏结束提示) -->
+        <div id="modal" class="absolute inset-0 bg-slate-900/60 backdrop-blur-[4px] flex items-center justify-center z-10 hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl text-center transform scale-95 transition-transform duration-300 w-[80%] max-w-xs" id="modalContent">
+                <h2 id="modalTitle" class="text-3xl font-black text-slate-800 mb-2">过关！</h2>
+                <p id="modalDesc" class="text-slate-500 mb-6 text-sm font-medium">额外奖励 1 滴水</p>
+                <button id="modalBtn" class="w-full bg-[#39ff14] hover:bg-green-500 active:scale-95 text-slate-900 font-black py-3 px-6 rounded-xl transition-all shadow-lg shadow-green-500/30">
+                    下一关
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 侧边 UI (取代原有顶部 HUD) -->
+    <div class="flex flex-col items-center justify-center relative z-10 w-48 shrink-0">
+        <!-- 玻璃烧瓶容积 -->
+        <div class="relative w-40 h-40 rounded-full border-[6px] border-white/70 bg-white/10 overflow-hidden glass-beaker flex items-center justify-center shadow-2xl">
+            <!-- 内部液面 -->
+            <div id="liquidLevel" class="absolute bottom-0 w-full h-[60%] bg-[#39ff14] transition-all duration-500" style="box-shadow: inset 0 10px 20px rgba(255,255,255,0.5);"></div>
+            <!-- 高光 -->
+            <div class="absolute top-2 left-4 w-12 h-6 bg-white/60 rounded-full rotate-[-30deg] blur-[2px]"></div>
+            <!-- 数值 (黑边黑影增加对比) -->
+            <span id="dropsDisplay" class="relative z-10 text-7xl font-black text-white" style="text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 4px 10px rgba(0,0,0,0.8);">10</span>
+        </div>
+        <!-- 关卡数 -->
+        <div class="mt-6 text-center w-full">
+            <div class="text-2xl text-white font-bold tracking-wider shadow-sm mb-0">level</div>
+            <div id="levelDisplay" class="text-7xl font-black text-white" style="text-shadow: 0px 4px 8px rgba(0,0,0,0.6);">1</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 游戏常量配置
+        const COLS = 6;
+        const ROWS = 6;
+        const CELL_SIZE = 80; // 480 / 6
+        const SPEED = 8;      // 飞溅水珠的速度 (必须能被CELL_SIZE整除)
+
+        // 游戏状态变量
+        let grid = [];
+        let bullets = [];
+        let burstQueue = [];
+        let floatingTexts = [];
+
+        let level = 1;
+        let dropsLeft = 10;
+        let burstCount = 0;      // 当前回合连爆数
+        let isAnimating = false; // 是否在播放连锁反应动画
+        let gameState = 'playing'; // playing, modal
+
+        // 初始化关卡
+        function initLevel() {
+            grid = Array(COLS).fill().map(() => Array(ROWS).fill(0));
+            bullets = [];
+            burstQueue = [];
+            floatingTexts = [];
+            isAnimating = false;
+            burstCount = 0;
+            gameState = 'playing';
+
+            // 根据经典规则并减少20%：第一关有约28个水滴，每升一级减少1个水滴。
+            const maxDrops = Math.floor(COLS * ROWS * 0.8); // 36 * 0.8 = 28
+            const dropsToPlace = Math.max(1, maxDrops - (level - 1));
+
+            // 创建所有网格坐标并随机打乱，用于随机分配空缺位置
+            let positions = [];
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 0; r < ROWS; r++) {
+                    positions.push({c, r});
+                }
+            }
+            positions.sort(() => Math.random() - 0.5);
+
+            // 在打乱后的坐标中放置指定数量的水滴
+            for(let i = 0; i < dropsToPlace; i++) {
+                let pos = positions[i];
+                grid[pos.c][pos.r] = Math.floor(Math.random() * 4) + 1; // 生成 1~4 级的水滴
+            }
+            
+            updateHUD();
+        }
+
+        // 更新UI数值
+        function updateHUD() {
+            document.getElementById('levelDisplay').innerText = level;
+            document.getElementById('dropsDisplay').innerText = dropsLeft;
+            
+            // 更新烧瓶液面高度，最高100%，以20滴为满参考
+            let heightPercent = Math.min(100, (dropsLeft / 20) * 100);
+            if(dropsLeft > 0 && heightPercent < 15) heightPercent = 15; // 至少显示一点点，除非用光
+            if(dropsLeft === 0) heightPercent = 0;
+            document.getElementById('liquidLevel').style.height = `${heightPercent}%`;
+        }
+
+        // 绘制画面
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制背景网格 (玻璃方块质感)
+            ctx.lineWidth = 4;
+            for(let c = 0; c < COLS; c++) {
+                for(let r = 0; r < ROWS; r++) {
+                    let x = c * CELL_SIZE;
+                    let y = r * CELL_SIZE;
+                    
+                    // 玻璃方块底色
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.beginPath();
+                    ctx.roundRect(x + 4, y + 4, CELL_SIZE - 8, CELL_SIZE - 8, 12);
+                    ctx.fill();
+                    
+                    // 玻璃方块边框
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.stroke();
+
+                    // 添加内侧阴影增强立体感
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+                    ctx.beginPath();
+                    ctx.roundRect(x + 6, y + 6, CELL_SIZE - 12, CELL_SIZE - 12, 10);
+                    ctx.stroke();
+                }
+            }
+
+            // 绘制网格中的水滴 (绿色史莱姆质感)
+            const time = Date.now() / 150; // 用于实现轻微呼吸起伏的动画效果
+            for(let c = 0; c < COLS; c++) {
+                for(let r = 0; r < ROWS; r++) {
+                    let size = grid[c][r];
+                    if (size > 0 && size <= 4) {
+                        let cx = c * CELL_SIZE + CELL_SIZE / 2;
+                        let cy = r * CELL_SIZE + CELL_SIZE / 2;
+                        let wobble = Math.sin(time + c*ROWS + r) * 1.5;
+
+                        ctx.save();
+                        ctx.translate(cx, cy);
+
+                        // 绿色玻璃质感渐变效果
+                        let grad = ctx.createRadialGradient(-6, -6, 2, 0, 0, 35);
+                        grad.addColorStop(0, '#dcfce7');     // 顶部极亮高光透射
+                        grad.addColorStop(0.3, '#39ff14');   // 主体明亮荧光绿
+                        grad.addColorStop(0.7, '#16a34a');   // 中层过渡暗绿
+                        grad.addColorStop(1, '#064e3b');     // 边缘/底部深邃暗绿
+
+                        // 添加水滴外阴影增加立体感
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                        ctx.shadowBlur = 6;
+                        ctx.shadowOffsetY = 3;
+
+                        ctx.fillStyle = grad;
+
+                        ctx.beginPath();
+                        if (size === 1) {
+                            // 极小圆
+                            ctx.arc(0, 0, 10 + wobble, 0, Math.PI*2);
+                        } else if (size === 2) {
+                            // 稍大，不规则豆子形
+                            ctx.ellipse(2, 2, 16 + wobble, 14 + wobble, 0, 0, Math.PI*2);
+                            ctx.arc(-8, -6, 8 + wobble, 0, Math.PI*2);
+                        } else if (size === 3) {
+                            // 不规则三角/阿米巴形状
+                            ctx.moveTo(0, -20 - wobble);
+                            ctx.bezierCurveTo(28, -15, 22, 18, 0, 20 + wobble);
+                            ctx.bezierCurveTo(-22, 18, -28, -15, 0, -20 - wobble);
+                        } else if (size === 4) {
+                            // 饱满大圆，即将爆裂
+                            ctx.arc(0, 0, 30 + wobble, 0, Math.PI*2);
+                        }
+                        ctx.fill();
+
+                        // 关闭阴影以免影响高光和内反射绘制
+                        ctx.shadowColor = 'transparent';
+
+                        // 绘制玻璃质感的内反射 (底部微弱亮光，增强通透感)
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        if (size === 1) {
+                            ctx.arc(0, 0, 8 + wobble, Math.PI*0.1, Math.PI*0.8);
+                        } else if (size === 4) {
+                            ctx.arc(0, 0, 26 + wobble, Math.PI*0.1, Math.PI*0.8);
+                        }
+                        ctx.stroke();
+
+                        // 绘制强烈的白色反光高光 (锋利的玻璃光泽感)
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                        ctx.beginPath();
+                        if (size === 1) {
+                            ctx.arc(-3, -3, 3, 0, Math.PI*2);
+                        } else if (size === 2) {
+                            ctx.ellipse(-6, -6, 5, 2, Math.PI/4, 0, Math.PI*2);
+                        } else if (size === 3) {
+                            ctx.ellipse(-8, -8, 7, 3, Math.PI/4, 0, Math.PI*2);
+                        } else if (size === 4) {
+                            ctx.ellipse(-12, -12, 10, 5, Math.PI/4, 0, Math.PI*2);
+                            // 次要高光点
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                            ctx.beginPath();
+                            ctx.arc(14, 14, 4, 0, Math.PI*2);
+                        }
+                        ctx.fill();
+
+                        ctx.restore();
+                    }
+                }
+            }
+
+            // 绘制飞溅的水珠（子弹）
+            for(let b of bullets) {
+                ctx.save();
+                // 子弹阴影
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
+                
+                // 子弹主体 (绿色玻璃质感)
+                let bGrad = ctx.createRadialGradient(b.cx - 2, b.cy - 2, 0, b.cx, b.cy, 7);
+                bGrad.addColorStop(0, '#dcfce7');
+                bGrad.addColorStop(0.4, '#39ff14');
+                bGrad.addColorStop(1, '#064e3b');
+                ctx.fillStyle = bGrad;
+                
+                ctx.beginPath();
+                ctx.arc(b.cx, b.cy, 7, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+                
+                // 子弹高光
+                ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                ctx.beginPath();
+                ctx.arc(b.cx - 2, b.cy - 2, 2.5, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // 绘制浮动文字 (如: +1)
+            for(let ft of floatingTexts) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${ft.alpha})`; // 白色字
+                ctx.font = '900 24px system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                // 黑色描边让字更清晰
+                ctx.strokeStyle = `rgba(0, 0, 0, ${ft.alpha})`;
+                ctx.lineWidth = 3;
+                ctx.strokeText(ft.text, ft.x, ft.y);
+                ctx.fillText(ft.text, ft.x, ft.y);
+            }
+        }
+
+        // 更新游戏逻辑 (移动、碰撞、连锁反应)
+        function update() {
+            if (gameState !== 'playing') return;
+
+            let currentlyAnimating = false;
+
+            // 1. 移动所有飞溅水珠并检测碰撞
+            for(let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.cx += b.vx;
+                b.cy += b.vy;
+
+                // 离开屏幕，标记为销毁
+                if (b.cx < 0 || b.cx > canvas.width || b.cy < 0 || b.cy > canvas.height) {
+                    b.dead = true;
+                    continue;
+                }
+
+                // 碰撞检测逻辑：当水珠到达某个网格中心时判断
+                let c = Math.floor(b.cx / CELL_SIZE);
+                let r = Math.floor(b.cy / CELL_SIZE);
+                let center_x = c * CELL_SIZE + CELL_SIZE / 2;
+                let center_y = r * CELL_SIZE + CELL_SIZE / 2;
+
+                if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+                    if (grid[c][r] > 0) {
+                        // 如果距离网格中心非常近（使用速度的一半来容错）
+                        if (Math.abs(b.cx - center_x) <= Math.abs(b.vx)/2 && Math.abs(b.cy - center_y) <= Math.abs(b.vy)/2) {
+                            if (grid[c][r] < 5) {
+                                grid[c][r]++;
+                                // 达到5级，加入爆裂队列
+                                if (grid[c][r] === 5) {
+                                    burstQueue.push({c, r});
+                                }
+                            }
+                            b.dead = true; // 击中目标后水珠消失
+                        }
+                    }
+                }
+            }
+
+            // 移除被标记为销毁的水珠
+            bullets = bullets.filter(b => !b.dead);
+
+            // 2. 处理爆裂队列
+            if (burstQueue.length > 0) {
+                for(let b of burstQueue) {
+                    grid[b.c][b.r] = 0; // 清空当前网格
+                    let cx = b.c * CELL_SIZE + CELL_SIZE / 2;
+                    let cy = b.r * CELL_SIZE + CELL_SIZE / 2;
+                    
+                    // 向上下左右发射4颗水珠
+                    bullets.push({cx, cy, vx: SPEED, vy: 0});
+                    bullets.push({cx, cy, vx: -SPEED, vy: 0});
+                    bullets.push({cx, cy, vx: 0, vy: SPEED});
+                    bullets.push({cx, cy, vx: 0, vy: -SPEED});
+
+                    burstCount++;
+                    // 游戏核心规则：连爆奖励。从连锁反应的第3个爆裂开始，每一个爆裂额外奖励1滴水。
+                    if (burstCount >= 3) {
+                        dropsLeft++;
+                        floatingTexts.push({
+                            text: '+1',
+                            x: cx,
+                            y: cy - 10,
+                            alpha: 1.0,
+                            life: 60
+                        });
+                        updateHUD();
+                    }
+                }
+                burstQueue = [];
+            }
+
+            // 3. 更新浮动文字状态
+            for(let i = floatingTexts.length - 1; i >= 0; i--) {
+                let ft = floatingTexts[i];
+                ft.y -= 0.8; // 向上飘动
+                ft.life--;
+                ft.alpha = ft.life / 60; // 渐隐
+                if (ft.life <= 0) floatingTexts.splice(i, 1);
+            }
+
+            // 4. 检查游戏动画状态与输赢判定
+            currentlyAnimating = bullets.length > 0 || burstQueue.length > 0;
+
+            // 如果刚刚结束所有动画，且水珠平息
+            if (isAnimating && !currentlyAnimating) {
+                checkWinLoss();
+            }
+            isAnimating = currentlyAnimating;
+        }
+
+        // 胜负条件判定
+        function checkWinLoss() {
+            let allEmpty = true;
+            for(let c = 0; c < COLS; c++) {
+                for(let r = 0; r < ROWS; r++) {
+                    if (grid[c][r] > 0) allEmpty = false;
+                }
+            }
+
+            if (allEmpty) {
+                gameState = 'modal';
+                level++;
+                // 游戏核心规则：通关后奖励一滴水
+                dropsLeft++; 
+                showModal('通关！', '恭喜清除所有水滴，奖励 1 滴水。', '进入下一关', () => {
+                    initLevel();
+                });
+            } else if (dropsLeft <= 0) {
+                gameState = 'modal';
+                showModal('水滴用尽', `遗憾，您止步于第 ${level} 关`, '重新开始', () => {
+                    level = 1;
+                    dropsLeft = 10;
+                    initLevel();
+                });
+            }
+        }
+
+        // --- 模态框 UI 逻辑 ---
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modalContent');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalBtn = document.getElementById('modalBtn');
+        let modalAction = null;
+
+        function showModal(title, desc, btnText, action) {
+            modalTitle.innerText = title;
+            modalDesc.innerText = desc;
+            modalBtn.innerText = btnText;
+            modalAction = action;
+
+            modal.classList.remove('hidden');
+            // 小延迟以确保过渡动画生效
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+            }, 10);
+        }
+
+        modalBtn.addEventListener('click', () => {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (modalAction) modalAction();
+            }, 300); // 等待 Tailwind 的 duration-300 执行完毕
+        });
+
+        // --- 鼠标/触摸交互事件 ---
+        function handleInput(clientX, clientY) {
+            if (isAnimating || gameState !== 'playing') return;
+            if (dropsLeft <= 0) return;
+
+            const rect = canvas.getBoundingClientRect();
+            // 计算屏幕缩放比例，保证无论 Canvas 在屏幕上多大，计算逻辑都是准的
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (clientX - rect.left) * scaleX;
+            const y = (clientY - rect.top) * scaleY;
+
+            const c = Math.floor(x / CELL_SIZE);
+            const r = Math.floor(y / CELL_SIZE);
+
+            if (c >= 0 && c < COLS && r >= 0 && r < ROWS) {
+                // 消耗一滴库存
+                dropsLeft--;
+                burstCount = 0; // 玩家每次主动点击时，重置连击计数器
+                grid[c][r]++;
+                
+                // 如果到达5级立刻加入爆裂队列
+                if (grid[c][r] >= 5) {
+                    burstQueue.push({c, r});
+                }
+                updateHUD();
+
+                // 强制触发一次动画状态更新
+                isAnimating = true;
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // 阻止默认的滚动或缩放
+            if(e.touches.length > 0) {
+                handleInput(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, {passive: false});
+
+        // 主游戏循环
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // 启动游戏
+        initLevel();
+        loop();
+    </script>
+</body>
+</html>

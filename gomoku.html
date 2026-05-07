@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOMOKU // 五子棋</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;700&family=Crimson+Text:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   BASE VARIABLES & RESET
+   ============================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ============================================
+   CYBERPUNK THEME - Neon Tech (Default)
+   ============================================ */
+[data-theme="cyberpunk"] {
+  --bg: #0a0a0f;
+  --bg-panel: rgba(13, 13, 20, 0.95);
+  --primary: #00fff0;
+  --secondary: #ff00ff;
+  --accent: #fcee0a;
+  --text: #e0e0e0;
+  --text-dim: #666680;
+  --font-display: 'Orbitron', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --glow-primary: 0 0 20px rgba(0, 255, 240, 0.5);
+  --board-bg: #08080e;
+  --board-grid: rgba(0, 255, 240, 0.15);
+  --panel-radius: 0;
+  --panel-border: 1px solid rgba(0, 255, 240, 0.3);
+  --btn-radius: 0;
+  --shadow: 0 0 30px rgba(0, 255, 240, 0.1);
+  --glass: none;
+}
+
+/* ============================================
+   OCEAN DEPTHS THEME - Deep & Fluid
+   ============================================ */
+[data-theme="ocean-depths"] {
+  --bg: linear-gradient(180deg, #0a1628 0%, #1a3a52 50%, #0d2137 100%);
+  --bg-panel: rgba(26, 58, 82, 0.7);
+  --primary: #4dd0e1;
+  --secondary: #80deea;
+  --accent: #b2ebf2;
+  --text: #e0f7fa;
+  --text-dim: #81d4fa;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'Work Sans', sans-serif;
+  --glow-primary: 0 4px 20px rgba(77, 208, 225, 0.3);
+  --board-bg: #0d2137;
+  --board-grid: rgba(77, 208, 225, 0.2);
+  --panel-radius: 20px;
+  --panel-border: none;
+  --btn-radius: 25px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass: blur(10px);
+}
+
+/* ============================================
+   SUNSET BOULEVARD THEME - Warm Gradient
+   ============================================ */
+[data-theme="sunset-boulevard"] {
+  --bg: linear-gradient(135deg, #2d1b2e 0%, #1a1a2e 50%, #16213e 100%);
+  --bg-panel: rgba(45, 27, 46, 0.75);
+  --primary: #ff6b6b;
+  --secondary: #feca57;
+  --accent: #ff9ff3;
+  --text: #ffeaa7;
+  --text-dim: #fab1a0;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'Crimson Text', serif;
+  --glow-primary: 0 4px 20px rgba(255, 107, 107, 0.3);
+  --board-bg: #1a1a2e;
+  --board-grid: rgba(255, 107, 107, 0.15);
+  --panel-radius: 16px;
+  --panel-border: none;
+  --btn-radius: 30px;
+  --shadow: 0 10px 40px rgba(255, 107, 107, 0.2);
+  --glass: blur(12px);
+}
+
+/* ============================================
+   FOREST CANOPY THEME - Organic Nature
+   ============================================ */
+[data-theme="forest-canopy"] {
+  --bg: linear-gradient(160deg, #1a2f1a 0%, #2d4a2b 50%, #1e3d1e 100%);
+  --bg-panel: rgba(45, 74, 43, 0.8);
+  --primary: #a5d6a7;
+  --secondary: #81c784;
+  --accent: #c8e6c9;
+  --text: #e8f5e9;
+  --text-dim: #a5d6a7;
+  --font-display: 'Noto Serif SC', serif;
+  --font-mono: 'Noto Sans SC', sans-serif;
+  --glow-primary: 0 4px 15px rgba(129, 199, 132, 0.25);
+  --board-bg: #1b361b;
+  --board-grid: rgba(165, 214, 167, 0.2);
+  --panel-radius: 12px;
+  --panel-border: none;
+  --btn-radius: 8px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --glass: blur(8px);
+}
+
+/* ============================================
+   MODERN MINIMALIST THEME - Clean White
+   ============================================ */
+[data-theme="modern-minimalist"] {
+  --bg: #f8f9fa;
+  --bg-panel: #ffffff;
+  --primary: #212529;
+  --secondary: #495057;
+  --accent: #000000;
+  --text: #212529;
+  --text-dim: #6c757d;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Work Sans', sans-serif;
+  --glow-primary: none;
+  --board-bg: #ffffff;
+  --board-grid: rgba(33, 37, 41, 0.12);
+  --panel-radius: 8px;
+  --panel-border: 1px solid #dee2e6;
+  --btn-radius: 6px;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --glass: none;
+}
+
+/* ============================================
+   GOLDEN HOUR THEME - Luxury Gold
+   ============================================ */
+[data-theme="golden-hour"] {
+  --bg: linear-gradient(145deg, #2c2416 0%, #3d3020 50%, #2a2015 100%);
+  --bg-panel: rgba(61, 48, 32, 0.85);
+  --primary: #d4af37;
+  --secondary: #c9a227;
+  --accent: #f4e4c1;
+  --text: #f5f0e1;
+  --text-dim: #c9b896;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'Crimson Text', serif;
+  --glow-primary: 0 4px 20px rgba(212, 175, 55, 0.25);
+  --board-bg: #2a2015;
+  --board-grid: rgba(212, 175, 55, 0.18);
+  --panel-radius: 4px;
+  --panel-border: 1px solid rgba(212, 175, 55, 0.3);
+  --btn-radius: 0;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass: blur(10px);
+}
+
+/* ============================================
+   ARCTIC FROST THEME - Clean Blue
+   ============================================ */
+[data-theme="arctic-frost"] {
+  --bg: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 50%, #e1f5fe 100%);
+  --bg-panel: rgba(255, 255, 255, 0.9);
+  --primary: #1976d2;
+  --secondary: #42a5f5;
+  --accent: #0d47a1;
+  --text: #1565c0;
+  --text-dim: #64b5f6;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Work Sans', sans-serif;
+  --glow-primary: 0 4px 15px rgba(25, 118, 210, 0.2);
+  --board-bg: #ffffff;
+  --board-grid: rgba(25, 118, 210, 0.15);
+  --panel-radius: 24px;
+  --panel-border: none;
+  --btn-radius: 50px;
+  --shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
+  --glass: blur(10px);
+}
+
+/* ============================================
+   DESERT ROSE THEME - Soft Pink
+   ============================================ */
+[data-theme="desert-rose"] {
+  --bg: linear-gradient(135deg, #2d1f24 0%, #3d282e 50%, #2d1f24 100%);
+  --bg-panel: rgba(61, 40, 46, 0.8);
+  --primary: #e8b4b8;
+  --secondary: #d4a5a5;
+  --accent: #f5e6e8;
+  --text: #fce4ec;
+  --text-dim: #f8bbd9;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'Crimson Text', serif;
+  --glow-primary: 0 4px 15px rgba(232, 180, 184, 0.2);
+  --board-bg: #2d1f24;
+  --board-grid: rgba(232, 180, 184, 0.15);
+  --panel-radius: 16px;
+  --panel-border: none;
+  --btn-radius: 20px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --glass: blur(10px);
+}
+
+/* ============================================
+   TECH INNOVATION THEME - Dark Modern
+   ============================================ */
+[data-theme="tech-innovation"] {
+  --bg: #161b22;
+  --bg-panel: rgba(33, 38, 45, 0.95);
+  --primary: #58a6ff;
+  --secondary: #79c0ff;
+  --accent: #ffffff;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Space Mono', monospace;
+  --glow-primary: 0 0 15px rgba(88, 166, 255, 0.3);
+  --board-bg: #1c2128;
+  --board-grid: rgba(88, 166, 255, 0.25);
+  --panel-radius: 6px;
+  --panel-border: 1px solid #30363d;
+  --btn-radius: 6px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --glass: none;
+}
+
+/* ============================================
+   BOTANICAL GARDEN THEME - Fresh Green
+   ============================================ */
+[data-theme="botanical-garden"] {
+  --bg: linear-gradient(145deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);
+  --bg-panel: rgba(46, 125, 50, 0.85);
+  --primary: #ffeb3b;
+  --secondary: #ff9800;
+  --accent: #fffde7;
+  --text: #f1f8e9;
+  --text-dim: #c5e1a5;
+  --font-display: 'Noto Serif SC', serif;
+  --font-mono: 'Noto Sans SC', sans-serif;
+  --glow-primary: 0 4px 15px rgba(255, 235, 59, 0.25);
+  --board-bg: #1b5e20;
+  --board-grid: rgba(255, 235, 59, 0.15);
+  --panel-radius: 20px;
+  --panel-border: none;
+  --btn-radius: 25px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --glass: blur(8px);
+}
+
+/* ============================================
+   MIDNIGHT GALAXY THEME - Cosmic Purple
+   ============================================ */
+[data-theme="midnight-galaxy"] {
+  --bg: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  --bg-panel: rgba(48, 43, 99, 0.75);
+  --primary: #b39ddb;
+  --secondary: #9575cd;
+  --accent: #e1bee7;
+  --text: #ede7f6;
+  --text-dim: #b39ddb;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'Space Mono', monospace;
+  --glow-primary: 0 4px 20px rgba(179, 157, 219, 0.3);
+  --board-bg: #1a1a2e;
+  --board-grid: rgba(179, 157, 219, 0.12);
+  --panel-radius: 16px;
+  --panel-border: none;
+  --btn-radius: 50px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass: blur(12px);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+body {
+  font-family: var(--font-mono);
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  user-select: none;
+  overflow-x: hidden;
+  position: relative;
+  transition: all 0.5s ease;
+}
+
+/* Background decorations - subtle and non-intrusive */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* Cyberpunk grid - only for cyberpunk */
+[data-theme="cyberpunk"]::before {
+  background: 
+    linear-gradient(rgba(0, 255, 240, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 240, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridMove 20s linear infinite;
+}
+
+@keyframes gridMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(50px); }
+}
+
+/* Ocean bubbles */
+[data-theme="ocean-depths"]::before {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(77, 208, 225, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(128, 222, 234, 0.06) 0%, transparent 40%);
+  animation: float 8s ease-in-out infinite;
+}
+
+/* Sunset glow */
+[data-theme="sunset-boulevard"]::before {
+  background: 
+    radial-gradient(ellipse at 100% 0%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 0% 100%, rgba(254, 202, 87, 0.08) 0%, transparent 50%);
+}
+
+/* Forest leaves */
+[data-theme="forest-canopy"]::before {
+  background: 
+    radial-gradient(circle at 10% 90%, rgba(129, 199, 132, 0.08) 0%, transparent 35%),
+    radial-gradient(circle at 90% 10%, rgba(165, 214, 167, 0.06) 0%, transparent 35%);
+}
+
+/* Golden shimmer */
+[data-theme="golden-hour"]::before {
+  background: 
+    linear-gradient(45deg, transparent 30%, rgba(212, 175, 55, 0.03) 50%, transparent 70%);
+  animation: shimmer 6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.3; transform: translateX(-100%); }
+  50% { opacity: 0.6; transform: translateX(100%); }
+}
+
+/* Arctic snowflakes */
+[data-theme="arctic-frost"]::before {
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 3%),
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.2) 0%, transparent 2%),
+    radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.25) 0%, transparent 2.5%);
+}
+
+/* Desert sand */
+[data-theme="desert-rose"]::before {
+  background: 
+    radial-gradient(ellipse at 50% 100%, rgba(232, 180, 184, 0.08) 0%, transparent 50%);
+}
+
+/* Botanical flowers */
+[data-theme="botanical-garden"]::before {
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(255, 235, 59, 0.06) 0%, transparent 30%),
+    radial-gradient(circle at 80% 70%, rgba(255, 152, 0, 0.05) 0%, transparent 30%);
+}
+
+/* Galaxy stars */
+[data-theme="midnight-galaxy"]::before {
+  background: 
+    radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.3), transparent),
+    radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.2), transparent),
+    radial-gradient(1px 1px at 300px 80px, rgba(255,255,255,0.3), transparent);
+  background-size: 400px 200px;
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ============================================
+   CONTAINER & LAYOUT
+   ============================================ */
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  padding: 32px;
+  max-width: 1100px;
+  width: 100%;
+}
+
+/* ============================================
+   PANEL STYLES
+   ============================================ */
+.game-panel {
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  box-shadow: var(--shadow);
+  position: relative;
+  transition: all 0.4s ease;
+  overflow: hidden;
+}
+
+/* ============================================
+   BOARD AREA - Clean and unobstructed
+   ============================================ */
+.board-area {
+  flex-shrink: 0;
+  padding: 24px;
+}
+
+.board-wrapper {
+  position: relative;
+  border-radius: var(--panel-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.4s ease;
+  background: var(--board-bg);
+}
+
+canvas {
+  display: block;
+  cursor: crosshair;
+  width: 588px;
+  height: 588px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================
+   STATUS BAR
+   ============================================ */
+.status-bar {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+  min-height: 22px;
+  transition: all .3s;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.status-bar.win {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+[data-theme="cyberpunk"] .status-bar {
+  text-shadow: var(--glow-primary);
+}
+
+[data-theme="cyberpunk"] .status-bar.win {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================
+   SIDE PANEL
+   ============================================ */
+.side-panel {
+  padding: 28px 24px;
+  min-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.side-panel h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--primary);
+  letter-spacing: 4px;
+  padding-bottom: 16px;
+  margin-bottom: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Title decorations */
+.side-panel h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  border-radius: 1px;
+}
+
+/* Cyberpunk title */
+[data-theme="cyberpunk"] .side-panel h2 {
+  text-shadow: var(--glow-primary);
+}
+
+/* Ocean title */
+[data-theme="ocean-depths"] .side-panel h2 {
+  letter-spacing: 3px;
+}
+
+[data-theme="ocean-depths"] .side-panel h2::after {
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), var(--primary), transparent);
+}
+
+/* Sunset gradient title */
+[data-theme="sunset-boulevard"] .side-panel h2 {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Forest organic */
+[data-theme="forest-canopy"] .side-panel h2 {
+  letter-spacing: 2px;
+}
+
+/* Minimalist */
+[data-theme="modern-minimalist"] .side-panel h2 {
+  letter-spacing: 6px;
+  font-weight: 700;
+}
+
+[data-theme="modern-minimalist"] .side-panel h2::after {
+  width: 40%;
+  background: var(--primary);
+}
+
+/* Golden elegant */
+[data-theme="golden-hour"] .side-panel h2 {
+  letter-spacing: 2px;
+}
+
+[data-theme="golden-hour"] .side-panel h2::after {
+  background: linear-gradient(90deg, transparent, var(--primary), var(--accent), var(--primary), transparent);
+  height: 1px;
+}
+
+/* Arctic clean */
+[data-theme="arctic-frost"] .side-panel h2 {
+  letter-spacing: 4px;
+}
+
+/* Desert romantic */
+[data-theme="desert-rose"] .side-panel h2 {
+  font-style: italic;
+  letter-spacing: 2px;
+}
+
+/* Tech code style */
+[data-theme="tech-innovation"] .side-panel h2::before {
+  content: '<';
+  margin-right: 8px;
+  color: var(--secondary);
+}
+
+[data-theme="tech-innovation"] .side-panel h2::after {
+  display: none;
+}
+
+[data-theme="tech-innovation"] .side-panel h2 {
+  font-family: 'Space Mono', monospace;
+}
+
+[data-theme="tech-innovation"] .side-panel h2::after {
+  content: '/>';
+  display: inline;
+  position: static;
+  transform: none;
+  margin-left: 8px;
+  background: none;
+  color: var(--secondary);
+}
+
+/* Botanical */
+[data-theme="botanical-garden"] .side-panel h2::before {
+  content: '🌿';
+  margin-right: 8px;
+}
+
+[data-theme="botanical-garden"] .side-panel h2::after {
+  display: none;
+}
+
+[data-theme="botanical-garden"] .side-panel h2::after {
+  content: '🌿';
+  display: inline;
+  position: static;
+  transform: none;
+  margin-left: 8px;
+  background: none;
+}
+
+/* Galaxy animated */
+[data-theme="midnight-galaxy"] .side-panel h2 {
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--secondary), var(--primary));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient 3s linear infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ============================================
+   SCORE ROW
+   ============================================ */
+.score-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: var(--panel-radius);
+  transition: all 0.3s ease;
+}
+
+[data-theme="modern-minimalist"] .score-row {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+[data-theme="arctic-frost"] .score-row {
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.score-item {
+  text-align: center;
+  flex: 1;
+}
+
+.score-item .count {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
+  transition: all 0.3s ease;
+}
+
+[data-theme="cyberpunk"] .score-item .count {
+  text-shadow: var(--glow-primary);
+}
+
+.score-item .label {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.score-divider {
+  width: 1px;
+  height: 36px;
+  background: linear-gradient(to bottom, transparent, var(--primary), transparent);
+  opacity: 0.3;
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.control-group {
+  position: relative;
+}
+
+.control-group label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: color 0.3s ease;
+}
+
+.control-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: var(--panel-border);
+  border-radius: var(--btn-radius);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--primary);
+  cursor: pointer;
+  outline: none;
+  transition: all .2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+[data-theme="modern-minimalist"] .control-group select,
+[data-theme="arctic-frost"] .control-group select {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #dee2e6;
+}
+
+.control-group select option {
+  background: var(--bg-panel);
+  color: var(--primary);
+}
+
+.control-group select:focus {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+  width: 100%;
+  padding: 12px 18px;
+  border: var(--panel-border);
+  border-radius: var(--btn-radius);
+  background: rgba(0, 0, 0, 0.2);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  color: var(--text);
+  transition: all .2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+[data-theme="modern-minimalist"] .btn,
+[data-theme="arctic-frost"] .btn {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.btn:hover {
+  background: var(--primary);
+  color: var(--bg-panel);
+  transform: translateY(-2px);
+  box-shadow: var(--glow-primary);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn.primary {
+  background: var(--secondary);
+  color: var(--bg-panel);
+  border-color: var(--secondary);
+}
+
+.btn.primary:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btn-row { display: flex; gap: 10px; }
+.btn-row .btn { flex: 1; }
+
+/* ============================================
+   THEME SELECTOR
+   ============================================ */
+.theme-selector {
+  position: relative;
+}
+
+.theme-selector select {
+  width: 100%;
+  padding: 12px 16px;
+  border: var(--panel-border);
+  border-radius: var(--btn-radius);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--primary);
+  cursor: pointer;
+  outline: none;
+  transition: all .2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+[data-theme="modern-minimalist"] .theme-selector select,
+[data-theme="arctic-frost"] .theme-selector select {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.theme-selector select option {
+  background: var(--bg-panel);
+  color: var(--primary);
+}
+
+/* ============================================
+   OVERLAY & HELP CARD
+   ============================================ */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.overlay.show { display: flex; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.help-card {
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: 32px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: cardSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  backdrop-filter: var(--glass);
+  -webkit-backdrop-filter: var(--glass);
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.help-card h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: var(--primary);
+  padding-bottom: 14px;
+  letter-spacing: 3px;
+  position: relative;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.help-card h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 1px;
+}
+
+.help-card h4 {
+  font-size: 12px;
+  margin: 18px 0 10px;
+  color: var(--secondary);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.help-card p, .help-card li {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 4px;
+  opacity: 0.9;
+}
+
+.help-card ul { padding-left: 20px; margin-bottom: 8px; }
+
+.help-card .close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px auto 0;
+  padding: 12px 32px;
+  border: var(--panel-border);
+  border-radius: var(--btn-radius);
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  color: var(--primary);
+  transition: all .2s ease;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.help-card .close-btn:hover {
+  background: var(--primary);
+  color: var(--bg-panel);
+}
+
+.help-card .close-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.help-card::-webkit-scrollbar {
+  width: 6px;
+}
+.help-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+.help-card::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+  opacity: 0.5;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  body {
+    align-items: flex-start;
+    padding-top: 12px;
+  }
+
+  .container {
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px;
+    align-items: center;
+    max-width: 100%;
+  }
+
+  .board-area {
+    width: 100%;
+    max-width: 588px;
+    padding: 16px;
+    flex-shrink: 1;
+  }
+
+  canvas {
+    width: 100%;
+    max-width: 588px;
+    height: auto;
+    aspect-ratio: 1 / 1;
+  }
+
+  .status-bar {
+    margin-top: 12px;
+    font-size: 11px;
+  }
+
+  .side-panel {
+    width: 100%;
+    max-width: 588px;
+    min-width: unset;
+    padding: 20px 18px;
+    gap: 14px;
+  }
+
+  .side-panel h2 {
+    font-size: 20px;
+    padding-bottom: 12px;
+  }
+
+  .btn {
+    padding: 14px 18px;
+    font-size: 12px;
+  }
+
+  .btn-row {
+    gap: 10px;
+  }
+
+  .control-group select,
+  .theme-selector select {
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+
+  .score-item .count {
+    font-size: 24px;
+  }
+
+  .help-card {
+    max-width: 95%;
+    padding: 24px 20px;
+  }
+
+  .help-card h3 {
+    font-size: 16px;
+  }
+}
+</style>
+</head>
+<body data-theme="cyberpunk">
+
+<div class="container">
+  <div class="board-area game-panel">
+    <div class="board-wrapper">
+      <canvas id="board"></canvas>
+    </div>
+    <div class="status-bar" id="status">// YOUR TURN — BLACK</div>
+  </div>
+
+  <div class="side-panel game-panel">
+    <h2>五子棋</h2>
+
+    <div class="score-row">
+      <div class="score-item">
+        <div class="count" id="winCount">0</div>
+        <div class="label">WIN</div>
+      </div>
+      <div class="score-divider"></div>
+      <div class="score-item">
+        <div class="count" id="loseCount">0</div>
+        <div class="label">LOSE</div>
+      </div>
+      <div class="score-divider"></div>
+      <div class="score-item">
+        <div class="count" id="drawCount">0</div>
+        <div class="label">DRAW</div>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>// DIFFICULTY</label>
+      <select id="difficulty">
+        <option value="easy">EASY — 简单</option>
+        <option value="medium" selected>MEDIUM — 中等</option>
+        <option value="hard">HARD — 困难</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>// SIDE SELECT</label>
+      <button class="btn" id="btnSide">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+        <span>BLACK — 先手</span>
+      </button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn primary" id="btnHint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>HINT</span>
+      </button>
+      <button class="btn" id="btnUndo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+        <span>UNDO</span>
+      </button>
+    </div>
+
+    <div class="theme-selector">
+      <label>// THEME SELECT</label>
+      <select id="themeSelect">
+        <option value="cyberpunk">CYBERPUNK — 赛博朋克</option>
+        <option value="ocean-depths">OCEAN DEPTHS — 深海</option>
+        <option value="sunset-boulevard">SUNSET BOULEVARD — 日落大道</option>
+        <option value="forest-canopy">FOREST CANOPY — 森林</option>
+        <option value="modern-minimalist">MODERN MINIMALIST — 极简</option>
+        <option value="golden-hour">GOLDEN HOUR — 黄金时刻</option>
+        <option value="arctic-frost">ARCTIC FROST — 北极霜冻</option>
+        <option value="desert-rose">DESERT ROSE — 沙漠玫瑰</option>
+        <option value="tech-innovation">TECH INNOVATION — 科技</option>
+        <option value="botanical-garden">BOTANICAL GARDEN — 植物园</option>
+        <option value="midnight-galaxy">MIDNIGHT GALAXY — 午夜银河</option>
+      </select>
+    </div>
+
+    <button class="btn primary" id="btnNew">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+      <span>NEW GAME</span>
+    </button>
+    <button class="btn" id="btnHelp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>HELP</span>
+    </button>
+  </div>
+</div>
+
+<div class="overlay" id="helpOverlay">
+  <div class="help-card">
+    <h3>// SYSTEM MANUAL</h3>
+
+    <h4>[ RULES ]</h4>
+    <ul>
+      <li>双方各执黑白棋子，轮流在棋盘交叉点落子</li>
+      <li>先在横、竖、斜任意方向上连成五子的一方获胜</li>
+      <li>棋盘下满无人连五则为平局</li>
+    </ul>
+
+    <h4>[ CONTROLS ]</h4>
+    <ul>
+      <li><strong>落子：</strong>点击棋盘交叉点放置棋子</li>
+      <li><strong>提示：</strong>AI 推荐一步好棋（高亮标记）</li>
+      <li><strong>悔棋：</strong>撤回你和 AI 各一步棋</li>
+      <li><strong>难度切换：</strong>游戏中切换难度会重新开始</li>
+      <li><strong>新游戏：</strong>清空棋盘重新对局</li>
+      <li><strong>主题切换：</strong>选择你喜欢的界面主题</li>
+    </ul>
+
+    <h4>[ THEMES ]</h4>
+    <ul>
+      <li><strong>赛博朋克：</strong>霓虹科技风</li>
+      <li><strong>深海/日落/森林：</strong>自然渐变风</li>
+      <li><strong>现代极简/科技：</strong>简洁现代风</li>
+      <li><strong>黄金时刻/沙漠玫瑰：</strong>奢华温暖风</li>
+      <li><strong>北极霜冻：</strong>清新明亮风</li>
+      <li><strong>植物园：</strong>活力自然风</li>
+      <li><strong>午夜银河：</strong>神秘宇宙风</li>
+    </ul>
+
+    <h4>[ AI LEVEL ]</h4>
+    <ul>
+      <li><strong>EASY：</strong>AI 随机落子，适合入门</li>
+      <li><strong>MEDIUM：</strong>AI 具有一定攻防意识</li>
+      <li><strong>HARD：</strong>AI 使用高级搜索算法，棋力较强</li>
+    </ul>
+
+    <button class="close-btn" id="btnCloseHelp">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <span>CLOSE</span>
+    </button>
+  </div>
+</div>
+
+<script>
+const SIZE = 15;
+const CELL = 38;
+const PADDING = 28;
+const BOARD_PX = CELL * (SIZE - 1) + PADDING * 2;
+const R = CELL * 0.42;
+
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+canvas.width = BOARD_PX;
+canvas.height = BOARD_PX;
+
+let board = [];
+let currentPlayer = 1;
+let gameOver = false;
+let history = [];
+let difficulty = 'medium';
+let hintPos = null;
+let winLine = null;
+let thinking = false;
+let humanPlayer = 1;
+let gameGeneration = 0;
+
+let wins = 0, losses = 0, draws = 0;
+let lastPlaced = null;
+let lastPlacedTime = 0;
+
+const $status = document.getElementById('status');
+const $difficulty = document.getElementById('difficulty');
+const $winCount = document.getElementById('winCount');
+const $loseCount = document.getElementById('loseCount');
+const $drawCount = document.getElementById('drawCount');
+const $helpOverlay = document.getElementById('helpOverlay');
+const $themeSelect = document.getElementById('themeSelect');
+
+const directions = [[0,1],[1,0],[1,1],[1,-1]];
+
+function getCSSVar(name) {
+  return getComputedStyle(document.body).getPropertyValue(name).trim();
+}
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+function hexToRgba(hex, alpha) {
+  const rgb = hexToRgb(hex);
+  return rgb ? `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})` : hex;
+}
+
+function initBoard() {
+  gameGeneration++;
+  board = Array.from({length: SIZE}, () => Array(SIZE).fill(0));
+  currentPlayer = 1;
+  gameOver = false;
+  history = [];
+  hintPos = null;
+  winLine = null;
+  thinking = false;
+  lastPlaced = null;
+  lastPlacedTime = 0;
+  $status.textContent = humanPlayer === 1 ? '// YOUR TURN — BLACK' : '// AI THINKING...';
+  $status.classList.remove('win');
+  draw();
+  if (humanPlayer !== 1) {
+    thinking = true;
+    const gen = gameGeneration;
+    setTimeout(() => { if (gameGeneration === gen) aiMove(); }, 500);
+  }
+}
+
+function cloneBoard(b) {
+  return b.map(row => [...row]);
+}
+
+function inBounds(r, c) {
+  return r >= 0 && r < SIZE && c >= 0 && c < SIZE;
+}
+
+function checkWin(b, r, c, player) {
+  for (const [dr, dc] of directions) {
+    let count = 1;
+    const cells = [[r, c]];
+    for (let sign = -1; sign <= 1; sign += 2) {
+      for (let i = 1; i < 5; i++) {
+        const nr = r + dr * i * sign;
+        const nc = c + dc * i * sign;
+        if (inBounds(nr, nc) && b[nr][nc] === player) {
+          count++;
+          cells.push([nr, nc]);
+        } else break;
+      }
+    }
+    if (count >= 5) return cells;
+  }
+  return null;
+}
+
+function isBoardFull(b) {
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      if (b[r][c] === 0) return false;
+  return true;
+}
+
+function placeStone(r, c, player, recordHistory = true) {
+  if (board[r][c] !== 0 || gameOver || thinking) return false;
+  if (recordHistory) {
+    history.push({r, c, player});
+  }
+  board[r][c] = player;
+  lastPlaced = {r, c, player};
+  lastPlacedTime = Date.now();
+  hintPos = null;
+  draw();
+
+  const cells = checkWin(board, r, c, player);
+  if (cells) {
+    gameOver = true;
+    winLine = cells;
+    if (player === humanPlayer) {
+      wins++;
+      $status.textContent = '// YOU WIN';
+    } else {
+      losses++;
+      $status.textContent = '// AI WINS';
+    }
+    $status.classList.add('win');
+    updateScore();
+    draw();
+    return true;
+  }
+
+  if (isBoardFull(board)) {
+    gameOver = true;
+    draws++;
+    $status.textContent = '// DRAW';
+    $status.classList.add('win');
+    updateScore();
+    draw();
+    return true;
+  }
+  return false;
+}
+
+function updateScore() {
+  $winCount.textContent = wins;
+  $loseCount.textContent = losses;
+  $drawCount.textContent = draws;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, BOARD_PX, BOARD_PX);
+
+  const boardBg = getCSSVar('--board-bg');
+  const boardGrid = getCSSVar('--board-grid');
+  const starPoint = getCSSVar('--star-point');
+  const blackStoneShadow = getCSSVar('--black-stone-shadow');
+  const whiteStoneShadow = getCSSVar('--white-stone-shadow');
+  const blackStoneRing = getCSSVar('--black-stone-ring');
+  const whiteStoneRing = getCSSVar('--white-stone-ring');
+  const winLineColor = getCSSVar('--win-line');
+  const primary = getCSSVar('--primary');
+  const accent = getCSSVar('--accent');
+  const currentTheme = document.body.getAttribute('data-theme');
+  const isTechTheme = currentTheme === 'tech-innovation';
+
+  // Board background
+  ctx.fillStyle = boardBg;
+  ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
+
+  // Theme-specific subtle decorations (not intrusive)
+  if (currentTheme === 'ocean-depths') {
+    // Subtle water gradient
+    const grad = ctx.createRadialGradient(BOARD_PX/2, BOARD_PX/2, 0, BOARD_PX/2, BOARD_PX/2, BOARD_PX);
+    grad.addColorStop(0, hexToRgba(primary, 0.02));
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
+  }
+
+  // Grid lines - clean and simple
+  ctx.strokeStyle = boardGrid;
+  ctx.lineWidth = isTechTheme ? 1.5 : 1;
+  for (let i = 0; i < SIZE; i++) {
+    const pos = PADDING + i * CELL;
+    ctx.beginPath();
+    ctx.moveTo(PADDING, pos);
+    ctx.lineTo(PADDING + (SIZE - 1) * CELL, pos);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos, PADDING);
+    ctx.lineTo(pos, PADDING + (SIZE - 1) * CELL);
+    ctx.stroke();
+  }
+
+  // Star points - clean dots
+  const starPoints = [[3,3],[3,7],[3,11],[7,3],[7,7],[7,11],[11,3],[11,7],[11,11]];
+  for (const [r, c] of starPoints) {
+    const x = PADDING + c * CELL;
+    const y = PADDING + r * CELL;
+    ctx.fillStyle = starPoint;
+    ctx.beginPath();
+    ctx.arc(x, y, isTechTheme ? 4 : 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Stones - clean design
+  const drawR = R;
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (board[r][c] === 0) continue;
+      const x = PADDING + c * CELL;
+      const y = PADDING + r * CELL;
+
+      ctx.save();
+
+      if (board[r][c] === 1) {
+        // Black stone
+        if (isTechTheme) {
+          // Tech theme: brighter black stone with blue tint for better visibility
+          ctx.shadowColor = '#58a6ff';
+          ctx.shadowBlur = 8;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+
+          const g = ctx.createRadialGradient(x - 4, y - 4, 0, x, y, drawR);
+          g.addColorStop(0, '#4a5568');
+          g.addColorStop(0.5, '#2d3748');
+          g.addColorStop(1, '#1a202c');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(x, y, drawR, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Blue glow ring for tech theme
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = 'rgba(88, 166, 255, 0.6)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, drawR - 1, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          // Standard black stone
+          ctx.shadowColor = blackStoneShadow;
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 2;
+
+          const g = ctx.createRadialGradient(x - 3, y - 3, 0, x, y, drawR);
+          g.addColorStop(0, '#3a3a4a');
+          g.addColorStop(0.7, '#1a1a2a');
+          g.addColorStop(1, '#0a0a15');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(x, y, drawR, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Subtle ring
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.strokeStyle = blackStoneRing;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, drawR, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else {
+        // White stone
+        ctx.shadowColor = whiteStoneShadow;
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 2;
+
+        const g = ctx.createRadialGradient(x - 4, y - 4, 0, x, y, drawR);
+        g.addColorStop(0, '#ffffff');
+        g.addColorStop(0.5, '#f0f0f5');
+        g.addColorStop(1, '#d0d0e0');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x, y, drawR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Subtle ring
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.strokeStyle = whiteStoneRing;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(x, y, drawR, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  }
+
+  // Last placed indicator - subtle
+  if (lastPlaced && !gameOver) {
+    const elapsed = Date.now() - lastPlacedTime;
+    if (elapsed < 3000) {
+      const lx = PADDING + lastPlaced.c * CELL;
+      const ly = PADDING + lastPlaced.r * CELL;
+      const t = Date.now() / 300;
+      const pulseAlpha = 0.4 + 0.2 * Math.sin(t * Math.PI * 2);
+
+      ctx.strokeStyle = hexToRgba(primary, pulseAlpha);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(lx, ly, drawR + 5, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  // Win line
+  if (winLine) {
+    ctx.save();
+    ctx.strokeStyle = winLineColor;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = winLineColor;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    const first = winLine[0];
+    const last = winLine[winLine.length - 1];
+    ctx.moveTo(PADDING + first[1] * CELL, PADDING + first[0] * CELL);
+    ctx.lineTo(PADDING + last[1] * CELL, PADDING + last[0] * CELL);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Hint indicator
+  if (hintPos && !gameOver && !thinking) {
+    const x = PADDING + hintPos.c * CELL;
+    const y = PADDING + hintPos.r * CELL;
+    const t = Date.now() / 500;
+    const alpha = 0.3 + 0.2 * Math.sin(t * Math.PI * 2);
+
+    ctx.save();
+    ctx.strokeStyle = hexToRgba(accent, alpha);
+    ctx.lineWidth = 2;
+    const size = 8;
+    // Draw corner brackets
+    ctx.beginPath();
+    ctx.moveTo(x - size - 5, y - size); ctx.lineTo(x - 5, y - size); ctx.lineTo(x - 5, y - size - 5);
+    ctx.moveTo(x + size + 5, y - size); ctx.lineTo(x + 5, y - size); ctx.lineTo(x + 5, y - size - 5);
+    ctx.moveTo(x - size - 5, y + size); ctx.lineTo(x - 5, y + size); ctx.lineTo(x - 5, y + size + 5);
+    ctx.moveTo(x + size + 5, y + size); ctx.lineTo(x + 5, y + size); ctx.lineTo(x + 5, y + size + 5);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+canvas.addEventListener('click', (e) => {
+  if (gameOver || thinking || currentPlayer !== humanPlayer) return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = BOARD_PX / rect.width;
+  const scaleY = BOARD_PX / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+  const c = Math.round((mx - PADDING) / CELL);
+  const r = Math.round((my - PADDING) / CELL);
+  if (!inBounds(r, c)) return;
+  if (board[r][c] !== 0) return;
+
+  const ended = placeStone(r, c, humanPlayer, true);
+  if (!ended) {
+    currentPlayer = 3 - humanPlayer;
+    $status.textContent = '// AI PROCESSING...';
+    thinking = true;
+    draw();
+    const gen = gameGeneration;
+    setTimeout(() => { if (gameGeneration === gen) aiMove(); }, 300 + Math.random() * 200);
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (gameOver || thinking || currentPlayer !== humanPlayer) {
+    canvas.style.cursor = 'crosshair';
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = BOARD_PX / rect.width;
+  const scaleY = BOARD_PX / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+  const c = Math.round((mx - PADDING) / CELL);
+  const r = Math.round((my - PADDING) / CELL);
+  canvas.style.cursor = (inBounds(r, c) && board[r][c] === 0) ? 'crosshair' : 'not-allowed';
+});
+
+function getEmptyCells(b) {
+  const cells = [];
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      if (b[r][c] === 0) cells.push([r, c]);
+  return cells;
+}
+
+function getNeighborCells(b, radius = 2) {
+  const candidates = new Set();
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (b[r][c] !== 0) {
+        for (let dr = -radius; dr <= radius; dr++) {
+          for (let dc = -radius; dc <= radius; dc++) {
+            const nr = r + dr, nc = c + dc;
+            if (inBounds(nr, nc) && b[nr][nc] === 0) {
+              candidates.add(nr * SIZE + nc);
+            }
+          }
+        }
+      }
+    }
+  }
+  if (candidates.size === 0 && b[7][7] === 0) {
+    candidates.add(7 * SIZE + 7);
+  }
+  return [...candidates].map(v => [Math.floor(v / SIZE), v % SIZE]);
+}
+
+function evaluateLine(b, r, c, dr, dc, player) {
+  let count = 0, openEnds = 0;
+  for (let sign = -1; sign <= 1; sign += 2) {
+    let cnt = 0;
+    for (let i = 1; i <= 5; i++) {
+      const nr = r + dr * i * sign, nc = c + dc * i * sign;
+      if (inBounds(nr, nc) && b[nr][nc] === player) cnt++;
+      else {
+        if (inBounds(nr, nc) && b[nr][nc] === 0) openEnds++;
+        break;
+      }
+    }
+    count += cnt;
+  }
+  return {count, openEnds};
+}
+
+function evaluateBoard(b, player) {
+  let score = 0;
+  const opponent = player === 1 ? 2 : 1;
+
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (b[r][c] === 0) continue;
+      const p = b[r][c];
+      for (const [dr, dc] of directions) {
+        const prevR = r - dr, prevC = c - dc;
+        if (inBounds(prevR, prevC) && b[prevR][prevC] === p) continue;
+        const {count, openEnds} = evaluateLine(b, r, c, dr, dc, p);
+        const mul = p === player ? 1 : -1.6;
+        if (count >= 5) score += mul * 10000000;
+        else if (count === 4 && openEnds === 2) score += mul * 500000;
+        else if (count === 4 && openEnds === 1) score += mul * 80000;
+        else if (count === 3 && openEnds === 2) score += mul * 10000;
+        else if (count === 3 && openEnds === 1) score += mul * 1000;
+        else if (count === 2 && openEnds === 2) score += mul * 400;
+        else if (count === 2 && openEnds === 1) score += mul * 50;
+        else if (count === 1 && openEnds === 2) score += mul * 15;
+      }
+    }
+  }
+
+  const center = 7;
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if (b[r][c] === 0) continue;
+      const dist = Math.abs(r - center) + Math.abs(c - center);
+      const centerBonus = Math.max(0, (14 - dist)) * 3;
+      score += (b[r][c] === player ? 1 : -1) * centerBonus;
+    }
+  }
+
+  return score;
+}
+
+function aiMoveEasy() {
+  const empty = getEmptyCells(board);
+  if (empty.length === 0) return null;
+  return empty[Math.floor(Math.random() * empty.length)];
+}
+
+function aiMoveMedium() {
+  const aiPlayer = 3 - humanPlayer;
+  const candidates = getNeighborCells(board, 2);
+  if (candidates.length === 0) return [7, 7];
+
+  const winMove = checkWinForPlayer(board, aiPlayer);
+  if (winMove) return winMove;
+  const blockMove = checkWinForPlayer(board, humanPlayer);
+  if (blockMove) return blockMove;
+
+  let bestScore = -Infinity;
+  let bestMoves = [];
+  for (const [r, c] of candidates) {
+    const b = cloneBoard(board);
+    b[r][c] = aiPlayer;
+    const humanWin = checkWinForPlayer(b, humanPlayer);
+    if (humanWin) continue;
+    const score = evaluateBoard(b, aiPlayer);
+    if (score > bestScore) {
+      bestScore = score;
+      bestMoves = [[r, c]];
+    } else if (score === bestScore) {
+      bestMoves.push([r, c]);
+    }
+  }
+  if (bestMoves.length === 0) {
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+  return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+}
+
+function aiMoveHard() {
+  const aiPlayer = 3 - humanPlayer;
+  const candidates = getNeighborCells(board, 2);
+  if (candidates.length === 0) return [7, 7];
+
+  const winCheck = checkWinForPlayer(board, aiPlayer);
+  if (winCheck) return winCheck;
+  const blockCheck = checkWinForPlayer(board, humanPlayer);
+  if (blockCheck) return blockCheck;
+
+  const scored = candidates.map(([r, c]) => {
+    const b = cloneBoard(board);
+    b[r][c] = aiPlayer;
+    const s = evaluateBoard(b, aiPlayer);
+    return {r, c, s};
+  });
+  scored.sort((a, b) => b.s - a.s);
+
+  const topN = Math.min(15, scored.length);
+  let bestScore = -Infinity;
+  let bestMove = [scored[0].r, scored[0].c];
+  for (let i = 0; i < topN; i++) {
+    const {r, c} = scored[i];
+    const b = cloneBoard(board);
+    b[r][c] = aiPlayer;
+    const score = minimax(b, 3, -Infinity, Infinity, false);
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = [r, c];
+    }
+  }
+  return bestMove;
+}
+
+function checkWinForPlayer(b, player) {
+  for (const [r, c] of getEmptyCells(b)) {
+    b[r][c] = player;
+    const w = checkWin(b, r, c, player);
+    b[r][c] = 0;
+    if (w) return [r, c];
+  }
+  return null;
+}
+
+function minimax(b, depth, alpha, beta, maximizing) {
+  const aiPlayer = 3 - humanPlayer;
+  const player = maximizing ? aiPlayer : humanPlayer;
+  if (depth === 0) return evaluateBoard(b, aiPlayer);
+
+  let candidates = getNeighborCells(b, 1);
+  if (candidates.length === 0) return evaluateBoard(b, aiPlayer);
+
+  if (depth >= 2) {
+    const scored = candidates.map(([r, c]) => {
+      b[r][c] = player;
+      const s = evaluateBoard(b, player);
+      b[r][c] = 0;
+      return {r, c, s};
+    });
+    scored.sort((a, b) => maximizing ? (b.s - a.s) : (a.s - b.s));
+    candidates = scored.map(({r, c}) => [r, c]);
+  }
+
+  if (maximizing) {
+    let maxScore = -Infinity;
+    for (const [r, c] of candidates) {
+      b[r][c] = aiPlayer;
+      const w = checkWin(b, r, c, aiPlayer);
+      if (w) { b[r][c] = 0; return 10000000 + depth; }
+      const score = minimax(b, depth - 1, alpha, beta, false);
+      b[r][c] = 0;
+      maxScore = Math.max(maxScore, score);
+      alpha = Math.max(alpha, score);
+      if (alpha >= beta) break;
+    }
+    return maxScore;
+  } else {
+    let minScore = Infinity;
+    for (const [r, c] of candidates) {
+      b[r][c] = humanPlayer;
+      const w = checkWin(b, r, c, humanPlayer);
+      if (w) { b[r][c] = 0; return -10000000 - depth; }
+      const score = minimax(b, depth - 1, alpha, beta, true);
+      b[r][c] = 0;
+      minScore = Math.min(minScore, score);
+      beta = Math.min(beta, score);
+      if (alpha >= beta) break;
+    }
+    return minScore;
+  }
+}
+
+function aiGetBestMove() {
+  if (difficulty === 'easy') return aiMoveEasy();
+  if (difficulty === 'medium') return aiMoveMedium();
+  return aiMoveHard();
+}
+
+function aiMove() {
+  if (gameOver) { thinking = false; return; }
+  const aiPlayer = 3 - humanPlayer;
+  const move = aiGetBestMove();
+  if (!move) {
+    gameOver = true;
+    draws++;
+    $status.textContent = '// DRAW';
+    $status.classList.add('win');
+    updateScore();
+    thinking = false;
+    draw();
+    return;
+  }
+  const [r, c] = move;
+  board[r][c] = aiPlayer;
+  lastPlaced = {r, c, player: aiPlayer};
+  lastPlacedTime = Date.now();
+  history.push({r, c, player: aiPlayer});
+  hintPos = null;
+  thinking = false;
+  const cells = checkWin(board, r, c, aiPlayer);
+  if (cells) {
+    gameOver = true;
+    winLine = cells;
+    losses++;
+    $status.textContent = '// AI WINS';
+    $status.classList.add('win');
+    updateScore();
+  } else if (isBoardFull(board)) {
+    gameOver = true;
+    draws++;
+    $status.textContent = '// DRAW';
+    $status.classList.add('win');
+    updateScore();
+  } else {
+    currentPlayer = humanPlayer;
+    $status.textContent = humanPlayer === 1 ? '// YOUR TURN — BLACK' : '// YOUR TURN — WHITE';
+  }
+  draw();
+}
+
+function newGame() {
+  initBoard();
+  draw();
+}
+
+function undo() {
+  if (gameOver || thinking || history.length < 2) return;
+  const aiMove = history.pop();
+  board[aiMove.r][aiMove.c] = 0;
+  const playerMove = history.pop();
+  board[playerMove.r][playerMove.c] = 0;
+  currentPlayer = humanPlayer;
+  hintPos = null;
+  winLine = null;
+  lastPlaced = null;
+  $status.textContent = humanPlayer === 1 ? '// YOUR TURN — BLACK' : '// YOUR TURN — WHITE';
+  draw();
+}
+
+// Theme switching
+function setTheme(themeName) {
+  document.body.setAttribute('data-theme', themeName);
+  localStorage.setItem('gomoku-theme', themeName);
+  draw();
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('gomoku-theme') || 'cyberpunk';
+document.body.setAttribute('data-theme', savedTheme);
+$themeSelect.value = savedTheme;
+
+$themeSelect.addEventListener('change', () => {
+  setTheme($themeSelect.value);
+});
+
+document.getElementById('btnNew').addEventListener('click', newGame);
+
+document.getElementById('btnUndo').addEventListener('click', undo);
+
+document.getElementById('btnHelp').addEventListener('click', () => {
+  $helpOverlay.classList.add('show');
+});
+
+document.getElementById('btnCloseHelp').addEventListener('click', () => {
+  $helpOverlay.classList.remove('show');
+});
+
+$helpOverlay.addEventListener('click', (e) => {
+  if (e.target === $helpOverlay) $helpOverlay.classList.remove('show');
+});
+
+document.getElementById('btnHint').addEventListener('click', () => {
+  if (gameOver || thinking || currentPlayer !== humanPlayer) return;
+  const tempBoard = cloneBoard(board);
+  const prevDiff = difficulty;
+  const prevBoard = cloneBoard(board);
+  difficulty = document.getElementById('difficulty').value;
+  const move = aiGetBestMove();
+  difficulty = prevDiff;
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
+      board[r][c] = prevBoard[r][c];
+  if (move) {
+    hintPos = {r: move[0], c: move[1]};
+    draw();
+  }
+});
+
+$difficulty.addEventListener('change', () => {
+  const newDiff = $difficulty.value;
+  if (history.length > 0 && newDiff !== difficulty) {
+    if (confirm('切换难度将重新开始游戏，确定吗？')) {
+      difficulty = newDiff;
+      newGame();
+    } else {
+      $difficulty.value = difficulty;
+    }
+  } else {
+    difficulty = newDiff;
+  }
+});
+
+document.getElementById('btnSide').addEventListener('click', () => {
+  if (history.length > 0) {
+    if (!confirm('切换阵营将重新开始游戏，确定吗？')) return;
+  }
+  humanPlayer = humanPlayer === 1 ? 2 : 1;
+  const sideBtn = document.getElementById('btnSide');
+  const sideBtnSpan = sideBtn.querySelector('span');
+  const sideBtnSvg = sideBtn.querySelector('svg');
+  if (humanPlayer === 1) {
+    sideBtnSpan.textContent = 'BLACK — 先手';
+    sideBtnSvg.innerHTML = '<circle cx="12" cy="12" r="8"/>';
+    sideBtnSvg.style.fill = 'currentColor';
+  } else {
+    sideBtnSpan.textContent = 'WHITE — 后手';
+    sideBtnSvg.innerHTML = '<circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>';
+    sideBtnSvg.style.fill = 'none';
+  }
+  newGame();
+});
+
+let hintAnimId = null;
+function hintAnimLoop() {
+  const lastPlacedActive = lastPlaced && !gameOver && (Date.now() - lastPlacedTime < 3000);
+  if ((hintPos && !gameOver && !thinking) || lastPlacedActive) {
+    draw();
+  }
+  hintAnimId = requestAnimationFrame(hintAnimLoop);
+}
+hintAnimId = requestAnimationFrame(hintAnimLoop);
+
+initBoard();
+draw();
+</script>
+</body>
+</html>
