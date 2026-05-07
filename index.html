@@ -337,7 +337,13 @@
             font-size: 28px;
             margin-bottom: 16px;
             transition: transform 0.3s ease;
-            background: var(--bg-panel);
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .game-icon svg {
+            stroke: currentColor;
         }
 
         .game-card:hover .game-icon {
