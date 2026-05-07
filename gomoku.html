@@ -281,6 +281,40 @@ body {
   transition: all 0.5s ease;
 }
 
+/* 返回首页按钮 */
+.back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--btn-radius);
+  padding: 10px 16px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-primary);
+  background: var(--primary);
+  color: var(--bg-panel);
+}
+
+.back-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* Background decorations - subtle and non-intrusive */
 body::before {
   content: '';
@@ -1046,6 +1080,12 @@ canvas {
 </head>
 <body data-theme="cyberpunk">
 
+<!-- 返回首页按钮 -->
+<a href="index.html" class="back-btn">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  <span>返回</span>
+</a>
+
 <div class="container">
   <div class="board-area game-panel">
     <div class="board-wrapper">
@@ -1110,10 +1150,6 @@ canvas {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <span>HELP</span>
     </button>
-    <a href="index.html" class="btn" id="btnBack">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>HOME</span>
-    </a>
   </div>
 </div>
 

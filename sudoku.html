@@ -345,7 +345,7 @@
 
         .main-layout {
             display: grid;
-            grid-template-columns: auto 1fr;
+            grid-template-columns: auto 320px;
             grid-template-areas:
                 "board ctrls"
                 "board info";
@@ -389,20 +389,21 @@
         }
 
         .difficulty-btn {
-            padding: 12px 8px;
+            padding: 12px 4px;
             border: 2px solid var(--primary);
             background: transparent;
             color: var(--primary);
             border-radius: var(--radius);
             cursor: pointer;
-            font-size: 0.75em;
+            font-size: 0.7em;
             font-weight: 700;
             transition: all 0.2s ease;
             font-family: var(--font-mono);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             min-height: 44px;
+            white-space: nowrap;
         }
 
         .difficulty-btn:hover {
@@ -430,22 +431,23 @@
         }
 
         .btn {
-            padding: 14px 12px;
+            padding: 14px 8px;
             border: 2px solid transparent;
             border-radius: var(--radius);
             cursor: pointer;
-            font-size: 0.8em;
+            font-size: 0.75em;
             font-weight: 700;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 4px;
             font-family: var(--font-mono);
             color: var(--bg-panel);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             min-height: 48px;
+            white-space: nowrap;
         }
 
         .btn-primary {
