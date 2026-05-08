@@ -668,16 +668,117 @@
             margin-bottom: 4px;
         }
 
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-with-controls {
+            position: relative;
+        }
+
+        .dir-btn {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background: var(--bg-panel);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: all 0.2s ease;
+            z-index: 20;
+        }
+
+        .dir-btn:hover {
+            opacity: 1;
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .dir-btn:active {
+            transform: scale(0.95);
+        }
+
+        .dir-btn svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        .dir-up {
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dir-down {
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dir-left {
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .dir-right {
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
         @media (max-width: 400px) {
             .title-row h1 {
-                font-size: 24px;
+                font-size: 22px;
             }
             .stats {
-                padding: 10px 20px;
-                gap: 20px;
+                padding: 8px 16px;
+                gap: 16px;
             }
             .stat-value {
-                font-size: 20px;
+                font-size: 18px;
+            }
+            .dir-btn {
+                width: 42px;
+                height: 42px;
+            }
+            .dir-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+            .controls select, .controls button {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            .exit-indicator {
+                font-size: 10px;
+                bottom: -20px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .dir-btn {
+                width: 36px;
+                height: 36px;
+            }
+            .dir-btn svg {
+                width: 16px;
+                height: 16px;
             }
         }
     </style>
@@ -708,25 +809,37 @@
     </div>
 
     <div class="game-area">
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-label">步数</div>
-                <div class="stat-value" id="moves">0</div>
+        <div class="game-wrapper">
+        <div class="game-with-controls">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">步数</div>
+                    <div class="stat-value" id="moves">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">记录</div>
+                    <div class="stat-value" id="best">-</div>
+                </div>
             </div>
-            <div class="stat">
-                <div class="stat-label">记录</div>
-                <div class="stat-value" id="best">-</div>
-            </div>
-        </div>
 
-        <div class="board-container">
-            <div class="board" id="board"></div>
-            <div class="exit-indicator">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                <span>曹操出口</span>
+            <div class="board-container">
+                <div class="board" id="board"></div>
+                <button class="dir-btn dir-up" data-dir="up" aria-label="向上">
+                    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+                </button>
+                <button class="dir-btn dir-down" data-dir="down" aria-label="向下">
+                    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <button class="dir-btn dir-left" data-dir="left" aria-label="向左">
+                    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button class="dir-btn dir-right" data-dir="right" aria-label="向右">
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
             </div>
         </div>
-    </div>
+        </div>
+        </div>
 
     <div class="win-modal" id="winModal">
         <div class="win-content">
@@ -751,7 +864,8 @@
             <div class="controls-help">
                 <h4>操控方式</h4>
                 <ul>
-                    <li>👆 点击/触摸棋子后，点击空白处移动</li>
+                    <li>👆 点击方向按钮移动选中的棋子</li>
+                    <li>👆 也可以点击棋子选中，再点击空白处移动</li>
                     <li>⌨️ 键盘：方向键或 WASD 移动选中棋子</li>
                     <li>🔄 按 R 键重置当前关卡</li>
                 </ul>
@@ -1048,6 +1162,39 @@
 
         createBoard();
         initLevel(0);
+
+        document.querySelectorAll('.dir-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!selectedBlock) {
+                    if (blocks.length > 0) {
+                        selectedBlock = blocks[0];
+                        document.querySelector(`[data-id="${blocks[0].id}"]`)?.classList.add('dragging');
+                    }
+                    return;
+                }
+                
+                const dir = btn.dataset.dir;
+                let dx = 0, dy = 0;
+                if (dir === 'up') dy = -1;
+                if (dir === 'down') dy = 1;
+                if (dir === 'left') dx = -1;
+                if (dir === 'right') dx = 1;
+                
+                if (canMove(selectedBlock, dx, dy)) {
+                    selectedBlock.x += dx;
+                    selectedBlock.y += dy;
+                    moves++;
+                    updateDisplay();
+                    renderBlocks();
+                    
+                    if (checkWin()) {
+                        showWin();
+                    } else {
+                        selectedBlock = null;
+                    }
+                }
+            });
+        });
 
         levelSelect.addEventListener('change', (e) => {
             initLevel(parseInt(e.target.value));
