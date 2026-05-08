@@ -196,6 +196,81 @@
             --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
+        /* ========== 主题预览 ========== */
+        .theme-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .theme-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .theme-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            max-width: 400px;
+        }
+
+        .theme-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .theme-dot:hover {
+            transform: scale(1.15);
+        }
+
+        .theme-dot.active {
+            border-color: var(--text);
+            box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px currentColor;
+        }
+
+        .theme-dot::before {
+            content: attr(data-name);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-panel);
+            color: var(--text);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            border: var(--card-border);
+        }
+
+        .theme-dot:hover::before {
+            opacity: 1;
+        }
+
+        /* 主题色定义 */
+        .theme-cyberpunk { background: linear-gradient(135deg, #00fff0, #ff00ff); }
+        .theme-ocean-depths { background: linear-gradient(135deg, #4dd0e1, #1a3a52); }
+        .theme-sunset-boulevard { background: linear-gradient(135deg, #ff6b6b, #feca57); }
+        .theme-forest-canopy { background: linear-gradient(135deg, #a5d6a7, #2d4a2b); }
+        .theme-modern-minimalist { background: linear-gradient(135deg, #212529, #f8f9fa); }
+        .theme-golden-hour { background: linear-gradient(135deg, #d4af37, #3d3020); }
+        .theme-arctic-frost { background: linear-gradient(135deg, #1976d2, #e3f2fd); }
+        .theme-desert-rose { background: linear-gradient(135deg, #e8b4b8, #3d282e); }
+        .theme-tech-innovation { background: linear-gradient(135deg, #58a6ff, #161b22); }
+        .theme-botanical-garden { background: linear-gradient(135deg, #ffeb3b, #1b5e20); }
+        .theme-midnight-galaxy { background: linear-gradient(135deg, #b39ddb, #0f0c29); }
+
         /* ========== 基础样式 ========== */
         body {
             font-family: var(--font-mono);
@@ -393,11 +468,17 @@
 
         @media (max-width: 640px) {
             .header-content {
-                flex-wrap: wrap;
+                flex-direction: column;
+                gap: 16px;
             }
-            .theme-selector select {
-                font-size: 13px;
-                padding: 6px 28px 6px 10px;
+            .theme-section {
+                align-items: center;
+            }
+            .theme-label {
+                display: none;
+            }
+            .theme-picker {
+                justify-content: center;
             }
             .hero h2 {
                 font-size: 24px;
@@ -444,20 +525,21 @@
                 <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4"/><path d="M8 10v4"/><circle cx="16" cy="12" r="1.5"/><circle cx="19" cy="10" r="1.5"/></svg></div>
                 <h1>游戏中心</h1>
             </div>
-            <div class="theme-selector">
-                <select id="themeSelect">
-                    <option value="cyberpunk">赛博朋克</option>
-                    <option value="ocean-depths">深海</option>
-                    <option value="sunset-boulevard">日落大道</option>
-                    <option value="forest-canopy">森林</option>
-                    <option value="modern-minimalist">极简</option>
-                    <option value="golden-hour">黄金时刻</option>
-                    <option value="arctic-frost">北极霜冻</option>
-                    <option value="desert-rose">沙漠玫瑰</option>
-                    <option value="tech-innovation">科技</option>
-                    <option value="botanical-garden">植物园</option>
-                    <option value="midnight-galaxy">午夜银河</option>
-                </select>
+            <div class="theme-section">
+                <span class="theme-label">选择主题</span>
+                <div class="theme-picker">
+                    <div class="theme-dot theme-cyberpunk active" data-theme="cyberpunk" data-name="赛博朋克" title="赛博朋克"></div>
+                    <div class="theme-dot theme-ocean-depths" data-theme="ocean-depths" data-name="深海" title="深海"></div>
+                    <div class="theme-dot theme-sunset-boulevard" data-theme="sunset-boulevard" data-name="日落大道" title="日落大道"></div>
+                    <div class="theme-dot theme-forest-canopy" data-theme="forest-canopy" data-name="森林" title="森林"></div>
+                    <div class="theme-dot theme-modern-minimalist" data-theme="modern-minimalist" data-name="极简" title="极简"></div>
+                    <div class="theme-dot theme-golden-hour" data-theme="golden-hour" data-name="黄金时刻" title="黄金时刻"></div>
+                    <div class="theme-dot theme-arctic-frost" data-theme="arctic-frost" data-name="北极霜冻" title="北极霜冻"></div>
+                    <div class="theme-dot theme-desert-rose" data-theme="desert-rose" data-name="沙漠玫瑰" title="沙漠玫瑰"></div>
+                    <div class="theme-dot theme-tech-innovation" data-theme="tech-innovation" data-name="科技" title="科技"></div>
+                    <div class="theme-dot theme-botanical-garden" data-theme="botanical-garden" data-name="植物园" title="植物园"></div>
+                    <div class="theme-dot theme-midnight-galaxy" data-theme="midnight-galaxy" data-name="午夜银河" title="午夜银河"></div>
+                </div>
             </div>
         </div>
     </header>
@@ -587,6 +669,16 @@
                     开始游戏
                 </span>
             </a>
+
+            <a href="klotski.html" class="game-card" data-game="klotski">
+                <div class="game-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg></div>
+                <h3 class="game-title">华容道</h3>
+                <p class="game-desc">经典中国传统益智游戏，移动棋子帮助曹操逃出华容道</p>
+                <span class="play-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    开始游戏
+                </span>
+            </a>
         </div>
     </main>
 
@@ -595,27 +687,31 @@
     </footer>
 
     <script>
-        const themeSelect = document.getElementById('themeSelect');
+        const themeDots = document.querySelectorAll('.theme-dot');
         const gameCards = document.querySelectorAll('.game-card');
         const body = document.body;
 
-        // 从 localStorage 加载保存的主题
         const savedTheme = localStorage.getItem('game-theme') || 'cyberpunk';
-        themeSelect.value = savedTheme;
-        body.setAttribute('data-theme', savedTheme);
+        setTheme(savedTheme);
 
-        // 监听主题切换
-        themeSelect.addEventListener('change', (e) => {
-            const theme = e.target.value;
+        function setTheme(theme) {
             body.setAttribute('data-theme', theme);
             localStorage.setItem('game-theme', theme);
+            themeDots.forEach(dot => {
+                dot.classList.toggle('active', dot.dataset.theme === theme);
+            });
+        }
+
+        themeDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                setTheme(dot.dataset.theme);
+            });
         });
 
-        // 为游戏卡片添加主题参数
         gameCards.forEach(card => {
             card.addEventListener('click', (e) => {
                 e.preventDefault();
-                const currentTheme = themeSelect.value;
+                const currentTheme = localStorage.getItem('game-theme') || 'cyberpunk';
                 const href = card.getAttribute('href');
                 window.location.href = `${href}?theme=${currentTheme}`;
             });
