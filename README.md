@@ -1,6 +1,6 @@
 # 🎮 Games - 网页小游戏合集
 
-一个精心设计的网页小游戏集合，包含七款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
+一个精心设计的网页小游戏集合，包含十一款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
 
 🔗 **在线体验**: [https://mufeesama.github.io/Games/](https://mufeesama.github.io/Games/)
 
