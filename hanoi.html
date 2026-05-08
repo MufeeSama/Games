@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>汉诺塔 - 经典递归益智游戏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;700&family=Crimson+Text:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        [data-theme="cyberpunk"] {
+            --bg: #0a0a0f;
+            --bg-panel: rgba(13, 13, 20, 0.95);
+            --primary: #00fff0;
+            --secondary: #ff00ff;
+            --accent: #fcee0a;
+            --text: #e0e0e0;
+            --text-dim: #666680;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glow-primary: 0 0 20px rgba(0, 255, 240, 0.5);
+            --card-bg: rgba(13, 13, 20, 0.8);
+            --card-border: 1px solid rgba(0, 255, 240, 0.3);
+            --radius: 0;
+            --shadow: 0 0 30px rgba(0, 255, 240, 0.1);
+            --rod-bg: rgba(0, 255, 240, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="ocean-depths"] {
+            --bg: linear-gradient(180deg, #0a1628 0%, #1a3a52 50%, #0d2137 100%);
+            --bg-panel: rgba(26, 58, 82, 0.7);
+            --primary: #4dd0e1;
+            --secondary: #80deea;
+            --accent: #b2ebf2;
+            --text: #e0f7fa;
+            --text-dim: #81d4fa;
+            --font-display: 'Cinzel', serif;
+            --font-mono: 'Work Sans', sans-serif;
+            --glow-primary: 0 4px 20px rgba(77, 208, 225, 0.3);
+            --card-bg: rgba(26, 58, 82, 0.8);
+            --card-border: none;
+            --radius: 20px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --rod-bg: rgba(77, 208, 225, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="sunset-boulevard"] {
+            --bg: linear-gradient(135deg, #2d1b2e 0%, #1a1a2e 50%, #16213e 100%);
+            --bg-panel: rgba(45, 27, 46, 0.75);
+            --primary: #ff6b6b;
+            --secondary: #feca57;
+            --accent: #ff9ff3;
+            --text: #ffeaa7;
+            --text-dim: #fab1a0;
+            --font-display: 'Playfair Display', serif;
+            --font-mono: 'Crimson Text', serif;
+            --glow-primary: 0 4px 20px rgba(255, 107, 107, 0.3);
+            --card-bg: rgba(45, 27, 46, 0.8);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 10px 40px rgba(255, 107, 107, 0.2);
+            --rod-bg: rgba(255, 107, 107, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="forest-canopy"] {
+            --bg: linear-gradient(160deg, #1a2f1a 0%, #2d4a2b 50%, #1e3d1e 100%);
+            --bg-panel: rgba(45, 74, 43, 0.8);
+            --primary: #a5d6a7;
+            --secondary: #81c784;
+            --accent: #c8e6c9;
+            --text: #e8f5e9;
+            --text-dim: #a5d6a7;
+            --font-display: 'Noto Serif SC', serif;
+            --font-mono: 'Noto Sans SC', sans-serif;
+            --glow-primary: 0 4px 15px rgba(129, 199, 132, 0.25);
+            --card-bg: rgba(45, 74, 43, 0.85);
+            --card-border: none;
+            --radius: 12px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+            --rod-bg: rgba(129, 199, 132, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="modern-minimalist"] {
+            --bg: #f8f9fa;
+            --bg-panel: #ffffff;
+            --primary: #212529;
+            --secondary: #495057;
+            --accent: #000000;
+            --text: #212529;
+            --text-dim: #6c757d;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Work Sans', sans-serif;
+            --glow-primary: 0 2px 10px rgba(33, 37, 41, 0.15);
+            --card-bg: #ffffff;
+            --card-border: 1px solid #dee2e6;
+            --radius: 8px;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --rod-bg: #dee2e6;
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="golden-hour"] {
+            --bg: linear-gradient(145deg, #2c2416 0%, #3d3020 50%, #2a2015 100%);
+            --bg-panel: rgba(61, 48, 32, 0.85);
+            --primary: #d4af37;
+            --secondary: #c9a227;
+            --accent: #f4e4c1;
+            --text: #f5f0e1;
+            --text-dim: #c9a227;
+            --font-display: 'Cinzel', serif;
+            --font-mono: 'Crimson Text', serif;
+            --glow-primary: 0 4px 15px rgba(212, 175, 55, 0.25);
+            --card-bg: rgba(61, 48, 32, 0.9);
+            --card-border: 1px solid rgba(212, 175, 55, 0.3);
+            --radius: 4px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --rod-bg: rgba(212, 175, 55, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="arctic-frost"] {
+            --bg: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 50%, #e1f5fe 100%);
+            --bg-panel: rgba(255, 255, 255, 0.9);
+            --primary: #1976d2;
+            --secondary: #42a5f5;
+            --accent: #0d47a1;
+            --text: #1565c0;
+            --text-dim: #64b5f6;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Work Sans', sans-serif;
+            --glow-primary: 0 4px 20px rgba(25, 118, 210, 0.15);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: none;
+            --radius: 24px;
+            --shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
+            --rod-bg: rgba(25, 118, 210, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="desert-rose"] {
+            --bg: linear-gradient(135deg, #2d1f24 0%, #3d282e 50%, #2d1f24 100%);
+            --bg-panel: rgba(61, 40, 46, 0.8);
+            --primary: #e8b4b8;
+            --secondary: #d4a5a5;
+            --accent: #f5e6e8;
+            --text: #fce4ec;
+            --text-dim: #e8b4b8;
+            --font-display: 'Playfair Display', serif;
+            --font-mono: 'Crimson Text', serif;
+            --glow-primary: 0 4px 15px rgba(232, 180, 184, 0.25);
+            --card-bg: rgba(61, 40, 46, 0.85);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+            --rod-bg: rgba(232, 180, 184, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="tech-innovation"] {
+            --bg: #161b22;
+            --bg-panel: rgba(33, 38, 45, 0.95);
+            --primary: #58a6ff;
+            --secondary: #79c0ff;
+            --accent: #ffffff;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 15px rgba(88, 166, 255, 0.2);
+            --card-bg: rgba(33, 38, 45, 0.8);
+            --card-border: 1px solid #30363d;
+            --radius: 6px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --rod-bg: rgba(88, 166, 255, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="botanical-garden"] {
+            --bg: linear-gradient(145deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);
+            --bg-panel: rgba(46, 125, 50, 0.85);
+            --primary: #ffeb3b;
+            --secondary: #ff9800;
+            --accent: #fffde7;
+            --text: #f1f8e9;
+            --text-dim: #c5e1a5;
+            --font-display: 'Noto Serif SC', serif;
+            --font-mono: 'Noto Sans SC', sans-serif;
+            --glow-primary: 0 4px 15px rgba(255, 235, 59, 0.25);
+            --card-bg: rgba(46, 125, 50, 0.9);
+            --card-border: none;
+            --radius: 20px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+            --rod-bg: rgba(255, 235, 59, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        [data-theme="midnight-galaxy"] {
+            --bg: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --bg-panel: rgba(48, 43, 99, 0.75);
+            --primary: #b39ddb;
+            --secondary: #9575cd;
+            --accent: #e1bee7;
+            --text: #ede7f6;
+            --text-dim: #b39ddb;
+            --font-display: 'Cinzel', serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 20px rgba(179, 157, 219, 0.3);
+            --card-bg: rgba(48, 43, 99, 0.8);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --rod-bg: rgba(179, 157, 219, 0.2);
+            --disc-bg: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        body {
+            font-family: var(--font-mono);
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            touch-action: manipulation;
+            overflow-x: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            background: var(--bg-panel);
+            color: var(--primary);
+            border: var(--card-border);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .back-btn svg { width: 16px; height: 16px; }
+
+        .header {
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-row h1 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            color: var(--primary);
+            text-shadow: var(--glow-primary);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--card-bg);
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            border: var(--card-border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .controls select {
+            padding: 6px 28px 6px 10px;
+            border: var(--card-border);
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--bg-panel);
+            color: var(--text);
+            cursor: pointer;
+            appearance: none;
+            font-family: var(--font-mono);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+        }
+
+        .controls select:focus { outline: none; box-shadow: var(--glow-primary); }
+
+        .controls button {
+            background: var(--primary);
+            color: var(--bg);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: all 0.2s ease;
+        }
+
+        .controls button:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+            background: var(--card-bg);
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            border: var(--card-border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .stat { text-align: center; }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: var(--font-display);
+        }
+
+        .board-container {
+            position: relative;
+            width: min(560px, 95vw);
+            height: min(340px, 55vw);
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: var(--card-border);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px 10px;
+        }
+
+        .rod {
+            position: relative;
+            width: 30%;
+            height: 85%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .rod:hover { transform: scale(1.02); }
+
+        .rod-base {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 12px;
+            background: var(--rod-bg);
+            border-radius: calc(var(--radius) / 2);
+        }
+
+        .rod-pole {
+            position: absolute;
+            bottom: 10px;
+            width: 8px;
+            height: calc(100% - 20px);
+            background: var(--rod-bg);
+            border-radius: 4px;
+        }
+
+        .disc {
+            height: 32px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--bg);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .disc:first-child { margin-bottom: 4px; }
+
+        .disc:hover { transform: translateY(-2px); }
+
+        .disc.selected {
+            transform: translateY(-20px);
+            box-shadow: var(--glow-primary), 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .disc-1 { width: 40%; background: linear-gradient(180deg, #ff6b6b, #ee5a5a); }
+        .disc-2 { width: 55%; background: linear-gradient(180deg, #feca57, #f9b42a); }
+        .disc-3 { width: 70%; background: linear-gradient(180deg, #48dbfb, #2bc4eb); }
+        .disc-4 { width: 85%; background: linear-gradient(180deg, #a55eea, #8e44ad); }
+        .disc-5 { width: 100%; background: linear-gradient(180deg, #26de81, #20bf6b); }
+        .disc-6 { width: 100%; background: linear-gradient(180deg, #fd79a8, #e84393); }
+        .disc-7 { width: 100%; background: linear-gradient(180deg, #636e72, #535c68); }
+
+        .win-modal, .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .win-modal.show, .modal.show { display: flex; }
+
+        .win-content, .modal-content {
+            background: var(--card-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            padding: 32px 40px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
+            max-width: 90%;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .win-content { animation: popIn 0.3s ease; }
+
+        .win-content h2 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            color: var(--primary);
+            margin-bottom: 16px;
+            text-shadow: var(--glow-primary);
+        }
+
+        .win-content p {
+            color: var(--text-dim);
+            margin-bottom: 24px;
+        }
+
+        .win-content strong { color: var(--accent); }
+
+        .win-content button, .modal button {
+            background: var(--primary);
+            color: var(--bg);
+            font-size: 14px;
+            font-weight: 700;
+            padding: 10px 24px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: all 0.2s ease;
+        }
+
+        .win-content button:hover, .modal button:hover { opacity: 0.85; }
+
+        .help-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            background: var(--bg-panel);
+            color: var(--primary);
+            border: var(--card-border);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .help-btn:hover { background: var(--primary); color: var(--bg); }
+        .help-btn svg { width: 18px; height: 18px; }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            color: var(--primary);
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+        }
+
+        .modal-content h2 {
+            font-family: var(--font-display);
+            color: var(--primary);
+            font-size: 20px;
+            margin-bottom: 16px;
+            text-shadow: var(--glow-primary);
+        }
+
+        .modal-content p {
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .modal-content ul {
+            margin-left: 20px;
+            color: var(--text-dim);
+            text-align: left;
+        }
+
+        .modal-content li { margin-bottom: 6px; }
+
+        .controls-help {
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--card-bg);
+            border-radius: calc(var(--radius) / 2);
+            border: var(--card-border);
+            text-align: left;
+        }
+
+        .controls-help h4 {
+            color: var(--primary);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .controls-help ul {
+            list-style: none;
+            font-size: 13px;
+            color: var(--text-dim);
+            margin: 0;
+        }
+
+        .controls-help li { margin-bottom: 4px; }
+
+        @media (max-width: 500px) {
+            .title-row h1 { font-size: 24px; }
+            .stats { padding: 10px 20px; gap: 20px; }
+            .stat-value { font-size: 20px; }
+            .disc { height: 28px; font-size: 12px; }
+            .board-container { height: min(300px, 60vw); }
+        }
+    </style>
+</head>
+<body data-theme="cyberpunk">
+    <a href="index.html" class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>返回</span>
+    </a>
+
+    <button class="help-btn" id="helpBtn" aria-label="帮助">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </button>
+
+    <div class="header">
+        <div class="title-row">
+            <h1>汉诺塔</h1>
+        </div>
+        <div class="controls">
+            <select id="levelSelect">
+                <option value="3">3 层</option>
+                <option value="4">4 层</option>
+                <option value="5" selected>5 层</option>
+                <option value="6">6 层</option>
+                <option value="7">7 层</option>
+            </select>
+            <button id="resetBtn">重新开始</button>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-label">步数</div>
+                <div class="stat-value" id="moves">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">最优</div>
+                <div class="stat-value" id="optimal">0</div>
+            </div>
+        </div>
+
+        <div class="board-container" id="board">
+            <div class="rod" data-rod="0">
+                <div class="rod-pole"></div>
+                <div class="rod-base"></div>
+            </div>
+            <div class="rod" data-rod="1">
+                <div class="rod-pole"></div>
+                <div class="rod-base"></div>
+            </div>
+            <div class="rod" data-rod="2">
+                <div class="rod-pole"></div>
+                <div class="rod-base"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="win-modal" id="winModal">
+        <div class="win-content">
+            <h2>🎉 通关成功！</h2>
+            <p>你用了 <strong id="finalMoves">0</strong> 步完成挑战<br>最优解为 <strong id="optimalMoves">0</strong> 步</p>
+            <button id="playAgainBtn">再玩一次</button>
+        </div>
+    </div>
+
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeHelp">&times;</button>
+            <h2>游戏规则</h2>
+            <p>汉诺塔是一款经典的递归益智游戏。目标是将所有盘子从最左边的柱子移动到最右边的柱子。</p>
+            <p>规则：</p>
+            <ul>
+                <li>• 每次只能移动一个盘子</li>
+                <li>• 大盘子不能放在小盘子上面</li>
+                <li>• 可以利用中间柱子作为中转</li>
+            </ul>
+            <div class="controls-help">
+                <h4>操控方式</h4>
+                <ul>
+                    <li>👆 点击柱子选中顶部盘子，再次点击目标柱子移动</li>
+                    <li>⌨️ 数字键 1、2、3 快速选择柱子</li>
+                    <li>🔄 按 R 键重置游戏</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let numDiscs = 5;
+        let rods = [[], [], []];
+        let moves = 0;
+        let selectedRod = null;
+        let optimal = 0;
+
+        const board = document.getElementById('board');
+        const movesDisplay = document.getElementById('moves');
+        const optimalDisplay = document.getElementById('optimal');
+        const levelSelect = document.getElementById('levelSelect');
+        const resetBtn = document.getElementById('resetBtn');
+        const winModal = document.getElementById('winModal');
+        const finalMoves = document.getElementById('finalMoves');
+        const optimalMoves = document.getElementById('optimalMoves');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const helpBtn = document.getElementById('helpBtn');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelp = document.getElementById('closeHelp');
+
+        function getThemeFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('theme');
+        }
+
+        const urlTheme = getThemeFromURL();
+        const savedTheme = urlTheme || localStorage.getItem('game-theme') || 'cyberpunk';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        function calculateOptimal(n) {
+            return Math.pow(2, n) - 1;
+        }
+
+        function initGame() {
+            numDiscs = parseInt(levelSelect.value);
+            rods = [[], [], []];
+            moves = 0;
+            selectedRod = null;
+            optimal = calculateOptimal(numDiscs);
+            
+            for (let i = numDiscs; i >= 1; i--) {
+                rods[0].push(i);
+            }
+            
+            updateDisplay();
+            render();
+            updateBestDisplay();
+        }
+
+        function updateDisplay() {
+            movesDisplay.textContent = moves;
+            optimalDisplay.textContent = optimal;
+        }
+
+        function updateBestDisplay() {
+            const best = localStorage.getItem(`hanoi-best-${numDiscs}`);
+            if (best) {
+                optimalDisplay.textContent = `${optimal} / 最优: ${best}`;
+            }
+        }
+
+        function render() {
+            const rodEls = document.querySelectorAll('.rod');
+            rodEls.forEach((rodEl, rodIndex) => {
+                const existingDiscs = rodEl.querySelectorAll('.disc');
+                existingDiscs.forEach(d => d.remove());
+                
+                const discs = rods[rodIndex];
+                discs.forEach((discSize, idx) => {
+                    const discEl = document.createElement('div');
+                    discEl.className = `disc disc-${discSize}`;
+                    discEl.textContent = discSize;
+                    discEl.dataset.size = discSize;
+                    discEl.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handleRodClick(rodIndex);
+                    });
+                    rodEl.insertBefore(discEl, rodEl.querySelector('.rod-pole'));
+                });
+            });
+        }
+
+        function handleRodClick(rodIndex) {
+            if (selectedRod === null) {
+                if (rods[rodIndex].length > 0) {
+                    selectedRod = rodIndex;
+                    const discs = document.querySelectorAll('.rod')[rodIndex].querySelectorAll('.disc');
+                    if (discs.length > 0) {
+                        discs[discs.length - 1].classList.add('selected');
+                    }
+                }
+            } else {
+                if (selectedRod === rodIndex) {
+                    clearSelection();
+                } else {
+                    if (canMove(selectedRod, rodIndex)) {
+                        moveDisc(selectedRod, rodIndex);
+                    } else {
+                        clearSelection();
+                    }
+                }
+            }
+        }
+
+        function canMove(from, to) {
+            if (rods[from].length === 0) return false;
+            if (rods[to].length === 0) return true;
+            return rods[from][rods[from].length - 1] < rods[to][rods[to].length - 1];
+        }
+
+        function moveDisc(from, to) {
+            const disc = rods[from].pop();
+            rods[to].push(disc);
+            moves++;
+            updateDisplay();
+            clearSelection();
+            render();
+            
+            if (checkWin()) {
+                showWin();
+            }
+        }
+
+        function clearSelection() {
+            selectedRod = null;
+            document.querySelectorAll('.disc').forEach(d => d.classList.remove('selected'));
+        }
+
+        function checkWin() {
+            return rods[2].length === numDiscs;
+        }
+
+        function showWin() {
+            finalMoves.textContent = moves;
+            optimalMoves.textContent = optimal;
+            winModal.classList.add('show');
+            
+            const key = `hanoi-best-${numDiscs}`;
+            const best = localStorage.getItem(key);
+            if (!best || moves < parseInt(best)) {
+                localStorage.setItem(key, moves);
+            }
+            updateBestDisplay();
+        }
+
+        function handleKeydown(e) {
+            if (winModal.classList.contains('show')) return;
+            
+            if (e.key === 'r' || e.key === 'R') {
+                initGame();
+                return;
+            }
+            
+            if (e.key >= '1' && e.key <= '3') {
+                handleRodClick(parseInt(e.key) - 1);
+            }
+        }
+
+        initGame();
+
+        levelSelect.addEventListener('change', initGame);
+        resetBtn.addEventListener('click', initGame);
+        playAgainBtn.addEventListener('click', () => {
+            winModal.classList.remove('show');
+            initGame();
+        });
+        document.addEventListener('keydown', handleKeydown);
+        helpBtn.addEventListener('click', () => helpModal.classList.add('show'));
+        closeHelp.addEventListener('click', () => helpModal.classList.remove('show'));
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) helpModal.classList.remove('show');
+        });
+    </script>
+</body>
+</html>

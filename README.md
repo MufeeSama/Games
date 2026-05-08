@@ -1,6 +1,6 @@
 # 🎮 Games - 网页小游戏合集
 
-一个精心设计的网页小游戏集合，包含十二款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
+一个精心设计的网页小游戏集合，包含十三款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
 
 🔗 **在线体验**: [https://mufeesama.github.io/Games/](https://mufeesama.github.io/Games/)
 
@@ -116,6 +116,15 @@
 
 ---
 
+### 🔺 汉诺塔 (Tower of Hanoi)
+经典递归益智游戏，移动圆盘从起点到终点。
+
+- **玩法**: 将所有圆盘从左边柱子移到右边，大盘不能在小盘上
+- **特色**: 3-7层难度选择，最优步数记录，多主题风格
+- **文件**: [hanoi.html](./hanoi.html)
+
+---
+
 ## 🚀 快速开始
 
 ### 方式一：直接打开
@@ -154,6 +163,7 @@ Games/
 ├── ChineseChess.html  # 中国象棋游戏
 ├── TrapTheCat.html   # 围小猫游戏
 ├── klotski.html       # 华容道游戏
+├── hanoi.html         # 汉诺塔游戏
 └── README.md          # 项目说明
 ```
 
