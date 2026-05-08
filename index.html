@@ -465,10 +465,39 @@
     <main>
         <div class="hero">
             <h2>选择你喜欢的游戏</h2>
-            <p>这里汇集了七款精心设计的网页小游戏，从策略消除到经典对弈，总有一款适合你</p>
+            <p>这里汇集了多款精心设计的网页小游戏，从策略消除到经典对弈，总有一款适合你</p>
         </div>
 
         <div class="games-grid">
+            <!-- ... existing cards ... -->
+            <a href="2048.html" class="game-card" data-game="2048">
+                <div class="game-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <path d="M7 8h10M7 12h10M7 16h10"/>
+                    </svg>
+                </div>
+                <h3 class="game-title">2048</h3>
+                <p class="game-desc">经典的数字合并游戏，滑动方块使相同数字相加，挑战 2048 极限</p>
+                <span class="play-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    开始游戏
+                </span>
+            </a>
+            <a href="othello.html" class="game-card" data-game="othello">
+                <div class="game-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2a10 10 0 0 0 0 20" fill="currentColor" stroke="none"/>
+                    </svg>
+                </div>
+                <h3 class="game-title">黑白棋</h3>
+                <p class="game-desc">经典奥赛罗策略游戏，夹击对手棋子使其翻转，占领棋盘</p>
+                <span class="play-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    开始游戏
+                </span>
+            </a>
             <a href="ten-drop.html" class="game-card" data-game="ten-drop">
                 <div class="game-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></div>
                 <h3 class="game-title">十滴水</h3>
@@ -543,6 +572,16 @@
                 <div class="game-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4L6 10"/><path d="M20 4L18 10"/><ellipse cx="12" cy="14" rx="8" ry="7"/><path d="M9 13l1.5 1 1.5-1"/><path d="M11.5 14l.5 2 .5-2"/><circle cx="9" cy="11" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="11" r="1" fill="currentColor" stroke="none"/><path d="M7 14.5c-1.5.5-2 1.5-2 2"/><path d="M17 14.5c1.5.5 2 1.5 2 2"/></svg></div>
                 <h3 class="game-title">围小猫</h3>
                 <p class="game-desc">策略围堵游戏，放置路障别让小猫跑出边缘</p>
+                <span class="play-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    开始游戏
+                </span>
+            </a>
+
+            <a href="minesweeper.html" class="game-card" data-game="minesweeper">
+                <div class="game-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg></div>
+                <h3 class="game-title">扫雷</h3>
+                <p class="game-desc">经典逻辑挑战，小心避开地雷，揭开所有安全区域</p>
                 <span class="play-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                     开始游戏
