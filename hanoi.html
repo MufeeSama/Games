@@ -588,12 +588,151 @@
 
         .controls-help li { margin-bottom: 4px; }
 
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-with-controls {
+            position: relative;
+        }
+
+        .rod-btn {
+            display: none;
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-panel);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            color: var(--primary);
+            cursor: pointer;
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.8;
+            transition: all 0.2s ease;
+            z-index: 20;
+        }
+
+        .rod-btn:hover {
+            opacity: 1;
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .rod-btn:active {
+            transform: scale(0.95);
+        }
+
+        .rod-btn.selected {
+            background: var(--primary);
+            color: var(--bg);
+            opacity: 1;
+        }
+
+        .rod-btn-0 { left: 5%; }
+        .rod-btn-1 { left: 38%; }
+        .rod-btn-2 { left: 71%; }
+
+        .rod-btn-label {
+            position: absolute;
+            top: -24px;
+            font-size: 10px;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+
+        .mobile-controls {
+            display: none;
+            margin-top: 16px;
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: var(--radius);
+            border: var(--card-border);
+            box-shadow: var(--shadow);
+        }
+
+        .mobile-controls-title {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .mobile-rod-btns {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .mobile-rod-btn {
+            width: 56px;
+            height: 56px;
+            background: var(--cell-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            color: var(--primary);
+            cursor: pointer;
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-rod-btn:hover {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .mobile-rod-btn.selected {
+            background: var(--primary);
+            color: var(--bg);
+            box-shadow: var(--glow-primary);
+        }
+
+        .mobile-rod-btn span {
+            font-size: 10px;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
         @media (max-width: 500px) {
-            .title-row h1 { font-size: 24px; }
-            .stats { padding: 10px 20px; gap: 20px; }
-            .stat-value { font-size: 20px; }
-            .disc { height: 28px; font-size: 12px; }
-            .board-container { height: min(300px, 60vw); }
+            .title-row h1 { font-size: 22px; }
+            .stats { padding: 8px 16px; gap: 16px; }
+            .stat-value { font-size: 18px; }
+            .disc { height: 26px; font-size: 11px; border-radius: 13px; }
+            .board-container { 
+                height: min(280px, 58vw); 
+                padding: 16px 8px;
+            }
+            .disc-1 { width: 35%; }
+            .disc-2 { width: 48%; }
+            .disc-3 { width: 62%; }
+            .disc-4 { width: 76%; }
+            .disc-5 { width: 90%; }
+            .disc-6 { width: 95%; }
+            .disc-7 { width: 98%; }
+            .rod-btn { display: flex; }
+            .rod-btn .rod-btn-label { display: none; }
+            .mobile-controls { display: block; }
+        }
+
+        @media (max-width: 360px) {
+            .mobile-rod-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 18px;
+            }
         }
     </style>
 </head>
@@ -624,32 +763,48 @@
     </div>
 
     <div class="game-area">
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-label">步数</div>
-                <div class="stat-value" id="moves">0</div>
+        <div class="game-wrapper">
+        <div class="game-with-controls">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">步数</div>
+                    <div class="stat-value" id="moves">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">最优</div>
+                    <div class="stat-value" id="optimal">0</div>
+                </div>
             </div>
-            <div class="stat">
-                <div class="stat-label">最优</div>
-                <div class="stat-value" id="optimal">0</div>
-            </div>
-        </div>
 
-        <div class="board-container" id="board">
-            <div class="rod" data-rod="0">
-                <div class="rod-pole"></div>
-                <div class="rod-base"></div>
+            <div class="board-container" id="board">
+                <button class="rod-btn rod-btn-0" data-rod="0">1<span class="rod-btn-label">起点</span></button>
+                <button class="rod-btn rod-btn-1" data-rod="1">2<span class="rod-btn-label">中转</span></button>
+                <button class="rod-btn rod-btn-2" data-rod="2">3<span class="rod-btn-label">终点</span></button>
+                <div class="rod" data-rod="0">
+                    <div class="rod-pole"></div>
+                    <div class="rod-base"></div>
+                </div>
+                <div class="rod" data-rod="1">
+                    <div class="rod-pole"></div>
+                    <div class="rod-base"></div>
+                </div>
+                <div class="rod" data-rod="2">
+                    <div class="rod-pole"></div>
+                    <div class="rod-base"></div>
+                </div>
             </div>
-            <div class="rod" data-rod="1">
-                <div class="rod-pole"></div>
-                <div class="rod-base"></div>
-            </div>
-            <div class="rod" data-rod="2">
-                <div class="rod-pole"></div>
-                <div class="rod-base"></div>
+
+            <div class="mobile-controls">
+                <div class="mobile-controls-title">选择柱子移动圆盘</div>
+                <div class="mobile-rod-btns">
+                    <button class="mobile-rod-btn" data-rod="0">1<span>起点</span></button>
+                    <button class="mobile-rod-btn" data-rod="1">2<span>中转</span></button>
+                    <button class="mobile-rod-btn" data-rod="2">3<span>终点</span></button>
+                </div>
             </div>
         </div>
-    </div>
+        </div>
+        </div>
 
     <div class="win-modal" id="winModal">
         <div class="win-content">
@@ -673,8 +828,9 @@
             <div class="controls-help">
                 <h4>操控方式</h4>
                 <ul>
-                    <li>👆 点击柱子选中顶部盘子，再次点击目标柱子移动</li>
-                    <li>⌨️ 数字键 1、2、3 快速选择柱子</li>
+                    <li>👆 点击柱子选中顶部圆盘，再次点击目标柱子移动</li>
+                    <li>📱 移动端：点击底部数字按钮选择柱子</li>
+                    <li>⌨️ 键盘：数字键 1、2、3 快速选择柱子</li>
                     <li>🔄 按 R 键重置游戏</li>
                 </ul>
             </div>
@@ -807,6 +963,7 @@
         function clearSelection() {
             selectedRod = null;
             document.querySelectorAll('.disc').forEach(d => d.classList.remove('selected'));
+            updateButtonSelection();
         }
 
         function checkWin() {
@@ -841,7 +998,44 @@
 
         initGame();
 
-        levelSelect.addEventListener('change', initGame);
+        function handleRodButtonClick(rodIndex) {
+            if (selectedRod === null) {
+                if (rods[rodIndex].length > 0) {
+                    selectedRod = rodIndex;
+                    updateButtonSelection();
+                }
+            } else {
+                if (selectedRod === rodIndex) {
+                    selectedRod = null;
+                    updateButtonSelection();
+                } else {
+                    if (canMove(selectedRod, rodIndex)) {
+                        moveDisc(selectedRod, rodIndex);
+                    } else {
+                        selectedRod = rodIndex;
+                        updateButtonSelection();
+                    }
+                }
+            }
+        }
+
+        function updateButtonSelection() {
+            document.querySelectorAll('.rod-btn, .mobile-rod-btn').forEach(btn => {
+                btn.classList.toggle('selected', parseInt(btn.dataset.rod) === selectedRod);
+            });
+        }
+
+        document.querySelectorAll('.rod-btn, .mobile-rod-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                handleRodButtonClick(parseInt(btn.dataset.rod));
+            });
+        });
+
+        levelSelect.addEventListener('change', () => {
+            selectedRod = null;
+            updateButtonSelection();
+            initGame();
+        });
         resetBtn.addEventListener('click', initGame);
         playAgainBtn.addEventListener('click', () => {
             winModal.classList.remove('show');
