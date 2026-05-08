@@ -1,6 +1,6 @@
 # 🎮 Games - 网页小游戏合集
 
-一个精心设计的网页小游戏集合，包含十一款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
+一个精心设计的网页小游戏集合，包含十二款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
 
 🔗 **在线体验**: [https://mufeesama.github.io/Games/](https://mufeesama.github.io/Games/)
 
@@ -107,6 +107,15 @@
 
 ---
 
+### 🧩 华容道 (Klotski)
+经典中国传统益智游戏，移动棋子帮助曹操逃出华容道。
+
+- **玩法**: 滑动棋子移出空位，将曹操移至出口即可获胜
+- **特色**: 4种经典布局，步数记录，多主题风格
+- **文件**: [klotski.html](./klotski.html)
+
+---
+
 ## 🚀 快速开始
 
 ### 方式一：直接打开
@@ -133,18 +142,19 @@ npx serve .
 ```
 Games/
 ├── index.html          # 游戏导航主页
-├── 2048.html          # 2048游戏
+├── 2048.html           # 2048游戏
 ├── tetris.html         # 俄罗斯方块游戏
 ├── minesweeper.html    # 扫雷游戏
-├── othello.html        # 奥赛罗/黑白棋游戏
-├── ten-drop.html       # 十滴水游戏
-├── chengyu.html        # 成语接龙游戏
-├── gomoku.html         # 五子棋游戏
-├── sudoku.html         # 数独游戏
-├── feihua.html         # 飞花令游戏
-├── ChineseChess.html   # 中国象棋游戏
-├── TrapTheCat.html     # 围小猫游戏
-└── README.md           # 项目说明
+├── othello.html       # 奥赛罗/黑白棋游戏
+├── ten-drop.html      # 十滴水游戏
+├── chengyu.html       # 成语接龙游戏
+├── gomoku.html        # 五子棋游戏
+├── sudoku.html        # 数独游戏
+├── feihua.html        # 飞花令游戏
+├── ChineseChess.html  # 中国象棋游戏
+├── TrapTheCat.html   # 围小猫游戏
+├── klotski.html       # 华容道游戏
+└── README.md          # 项目说明
 ```
 
 ---
