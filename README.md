@@ -1,6 +1,6 @@
 # 🎮 Games - 网页小游戏合集
 
-一个精心设计的网页小游戏集合，包含五款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
+一个精心设计的网页小游戏集合，包含七款风格各异的游戏，全部使用纯 HTML/CSS/JavaScript 构建，无需安装，即开即玩。
 
 🔗 **在线体验**: [https://mufeesama.github.io/Games/](https://mufeesama.github.io/Games/)
 
@@ -62,6 +62,15 @@
 
 ---
 
+### 🐱 围小猫 (Trap the Cat)
+策略围堵游戏，在六边形棋盘上放置路障围住小猫。
+
+- **玩法**: 点击浅色圆点放置路障，阻止小猫逃出边缘
+- **特色**: BFS寻路AI，四档难度，11种主题风格，盾牌路障图标
+- **文件**: [TrapTheCat.html](./TrapTheCat.html)
+
+---
+
 ## 🚀 快速开始
 
 ### 方式一：直接打开
@@ -94,6 +103,7 @@ Games/
 ├── sudoku.html         # 数独游戏
 ├── feihua.html         # 飞花令游戏
 ├── ChineseChess.html   # 中国象棋游戏
+├── TrapTheCat.html     # 围小猫游戏
 └── README.md           # 项目说明
 ```
 

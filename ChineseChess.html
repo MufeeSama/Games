@@ -254,6 +254,44 @@
             height: 18px;
         }
 
+        /* 声音切换按钮 */
+        .sound-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: #ecf0f1;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            font-family: 'Noto Serif SC', serif;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .sound-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .sound-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .sound-btn.muted {
+            opacity: 0.6;
+        }
+
         /* 手机端适配 */
         @media (max-width: 768px) {
             body {
@@ -265,6 +303,15 @@
                 position: fixed;
                 top: 12px;
                 left: 12px;
+                transform: none;
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+
+            .sound-btn {
+                position: fixed;
+                top: 12px;
+                right: 12px;
                 transform: none;
                 padding: 8px 14px;
                 font-size: 12px;
@@ -299,6 +346,74 @@
                 width: 36px;
                 height: 36px;
             }
+
+            .move-hint {
+                width: 12px;
+                height: 12px;
+            }
+
+            .status-bar {
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+
+            .turn-indicator {
+                font-size: 14px;
+                padding: 4px 12px;
+            }
+
+            .btn {
+                padding: 4px 12px;
+                font-size: 12px;
+            }
+
+            #difficulty {
+                padding: 2px 6px !important;
+            }
+
+            .modal-box {
+                width: 240px;
+                padding: 16px;
+            }
+
+            #modal-title {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .board-wrapper {
+                width: 280px;
+                height: 312px;
+            }
+
+            canvas {
+                width: 280px;
+                height: 312px;
+            }
+
+            .piece {
+                width: 26px;
+                height: 26px;
+                font-size: 16px;
+            }
+
+            .selected-mark {
+                width: 32px;
+                height: 32px;
+            }
+
+            .capture-hint {
+                width: 32px;
+                height: 32px;
+            }
+
+            .move-hint {
+                width: 10px;
+                height: 10px;
+            }
         }
     </style>
 </head>
@@ -309,6 +424,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         返回
     </a>
+
+    <!-- 声音切换按钮 -->
+    <button id="sound-toggle" class="sound-btn" onclick="toggleSound()">
+        <svg id="sound-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="sound-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        <span id="sound-label">声音</span>
+    </button>
 
     <div class="board-container">
         <!-- 顶部信息 -->
@@ -342,6 +464,156 @@
     </div>
 
     <script>
+        // ==========================================
+        // 音效引擎 (Web Audio API)
+        // ==========================================
+        class SoundEngine {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+
+            _ensureCtx() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+
+            _playTone(freq, duration, type = 'sine', volume = 0.15) {
+                if (!this.enabled) return;
+                this._ensureCtx();
+                const ctx = this.ctx;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            }
+
+            playSelect() {
+                this._playTone(880, 0.08, 'sine', 0.12);
+            }
+
+            playMove() {
+                if (!this.enabled) return;
+                this._ensureCtx();
+                const ctx = this.ctx;
+                const bufferSize = ctx.sampleRate * 0.15;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const t = i / ctx.sampleRate;
+                    const env = Math.exp(-t * 20);
+                    data[i] = (Math.random() * 2 - 1) * env * 0.1;
+                }
+                const source = ctx.createBufferSource();
+                source.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 600;
+                source.connect(filter);
+                filter.connect(ctx.destination);
+                source.start();
+            }
+
+            playCapture() {
+                if (!this.enabled) return;
+                this._ensureCtx();
+                const ctx = this.ctx;
+                const bufferSize = ctx.sampleRate * 0.12;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const t = i / ctx.sampleRate;
+                    const env = Math.exp(-t * 40);
+                    data[i] = (Math.random() * 2 - 1) * env * 0.25;
+                }
+                const source = ctx.createBufferSource();
+                source.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1200;
+                source.connect(filter);
+                filter.connect(ctx.destination);
+                source.start();
+            }
+
+            playCheck() {
+                if (!this.enabled) return;
+                this._ensureCtx();
+                const ctx = this.ctx;
+                const baseFreq = 180;
+                for (let i = 0; i < 3; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    const startTime = ctx.currentTime + i * 0.25;
+                    osc.frequency.setValueAtTime(baseFreq, startTime);
+                    gain.gain.setValueAtTime(0.2, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.2);
+                }
+            }
+
+            playWin() {
+                if (!this.enabled) return;
+                this._ensureCtx();
+                const ctx = this.ctx;
+                const notes = [523, 659, 784, 1047];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    const startTime = ctx.currentTime + i * 0.12;
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0.15, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.4);
+                });
+            }
+
+            playLose() {
+                if (!this.enabled) return;
+                this._ensureCtx();
+                const ctx = this.ctx;
+                const notes = [392, 330, 262, 196];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    const startTime = ctx.currentTime + i * 0.18;
+                    osc.frequency.setValueAtTime(freq, startTime);
+                    gain.gain.setValueAtTime(0.15, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.5);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.5);
+                });
+            }
+        }
+
+        const sound = new SoundEngine();
+
         // ==========================================
         // 核心常量与配置
         // ==========================================
@@ -577,6 +849,14 @@
         // 交互与走子规则
         // ==========================================
 
+        function toggleSound() {
+            const enabled = sound.toggle();
+            document.getElementById('sound-icon-on').style.display = enabled ? 'block' : 'none';
+            document.getElementById('sound-icon-off').style.display = enabled ? 'none' : 'block';
+            document.getElementById('sound-label').innerText = enabled ? '声音' : '静音';
+            document.getElementById('sound-toggle').classList.toggle('muted', !enabled);
+        }
+
         function handleCellClick(r, c) {
             if (isAITurn) return;
 
@@ -586,6 +866,7 @@
             if (clickedPiece && clickedPiece.color === currentTurn) {
                 selectedCell = {r, c};
                 validMoves = calculateValidMoves(r, c);
+                sound.playSelect();
                 renderPieces();
                 return;
             }
@@ -610,6 +891,13 @@
             const piece = board[fromR][fromC];
             const target = board[toR][toC];
 
+            // 播放移动音效
+            if (target) {
+                sound.playCapture();
+            } else {
+                sound.playMove();
+            }
+
             // 移动
             board[toR][toC] = piece;
             board[fromR][fromC] = null;
@@ -629,13 +917,56 @@
             updateTurnUI();
             renderPieces();
 
+            // 检测将军
+            if (isKingInCheck(currentTurn)) {
+                sound.playCheck();
+            }
+
             // 触发 AI
             if (currentTurn === 'black') {
                 isAITurn = true;
-                setTimeout(makeAIMove, 50); // 留出一点时间让 UI 渲染“思考中”
+                setTimeout(makeAIMove, 50); // 留出一点时间让 UI 渲染"思考中"
             } else {
                 isAITurn = false;
             }
+        }
+
+        function isKingInCheck(color) {
+            let kingPos = null;
+            const kingType = color === 'red' ? '帅' : '将';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (board[r][c] && board[r][c].type === kingType && board[r][c].color === color) {
+                        kingPos = {r, c};
+                        break;
+                    }
+                }
+                if (kingPos) break;
+            }
+            if (!kingPos) return false;
+
+            const opponentColor = color === 'red' ? 'black' : 'red';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const piece = board[r][c];
+                    if (piece && piece.color === opponentColor) {
+                        let moves = [];
+                        switch(piece.type) {
+                            case '车': moves = getRookMoves(r, c, opponentColor); break;
+                            case '马': moves = getKnightMoves(r, c, opponentColor); break;
+                            case '炮': moves = getCannonMoves(r, c, opponentColor); break;
+                            case '相': case '象': moves = getElephantMoves(r, c, opponentColor); break;
+                            case '仕': case '士': moves = getAdvisorMoves(r, c, opponentColor); break;
+                            case '帅': case '将': moves = getKingMoves(r, c, opponentColor); break;
+                            case '兵': case '卒': moves = getPawnMoves(r, c, opponentColor); break;
+                        }
+                        if (moves.find(m => m.r === kingPos.r && m.c === kingPos.c)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
 
         function showWinModal(winningColor) {
@@ -644,9 +975,11 @@
             if (winningColor === 'red') {
                 title.innerText = "玩家胜！";
                 title.style.color = "var(--red-text)";
+                sound.playWin();
             } else {
                 title.innerText = "电脑胜！";
                 title.style.color = "var(--black-text)";
+                sound.playLose();
             }
             modal.classList.remove('hidden');
             isAITurn = true; // 游戏结束，禁止点击

@@ -315,6 +315,41 @@ body {
   height: 18px;
 }
 
+/* 音效开关按钮 */
+.sound-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--btn-radius);
+  padding: 10px 16px;
+  color: var(--primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+
+.sound-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-primary);
+  background: var(--primary);
+  color: var(--bg-panel);
+}
+
+.sound-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* Background decorations - subtle and non-intrusive */
 body::before {
   content: '';
@@ -1026,6 +1061,22 @@ canvas {
     transform: translateY(-2px);
   }
 
+  .sound-toggle {
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;
+    padding: 8px 14px;
+    font-size: 12px;
+    align-self: flex-end;
+    order: -1;
+    margin-bottom: 0;
+  }
+
+  .sound-toggle:hover {
+    transform: translateY(-2px);
+  }
+
   .container {
     flex-direction: column;
     gap: 20px;
@@ -1103,6 +1154,11 @@ canvas {
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
   <span>返回</span>
 </a>
+
+<button class="sound-toggle" id="btnSound" title="开关音效">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+  <span>音效</span>
+</button>
 
 <div class="container">
   <div class="board-area game-panel">
@@ -1218,6 +1274,120 @@ canvas {
 </div>
 
 <script>
+class SoundEngine {
+  constructor() {
+    this.enabled = true;
+    this.ctx = null;
+  }
+
+  _ensureCtx() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  _noiseBuffer(duration) {
+    const sampleRate = this.ctx.sampleRate;
+    const length = sampleRate * duration;
+    const buffer = this.ctx.createBuffer(1, length, sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1);
+    }
+    return buffer;
+  }
+
+  _playNoise(duration, freq, type = 'lowpass') {
+    if (!this.enabled) return;
+    this._ensureCtx();
+    const source = this.ctx.createBufferSource();
+    source.buffer = this._noiseBuffer(duration);
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = type;
+    filter.frequency.value = freq;
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    source.start();
+    source.stop(this.ctx.currentTime + duration);
+  }
+
+  _playTone(freq, duration, type = 'sine') {
+    if (!this.enabled) return;
+    this._ensureCtx();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  }
+
+  playPlaceBlack() {
+    this._playNoise(0.08, 800, 'bandpass');
+  }
+
+  playPlaceWhite() {
+    this._playNoise(0.08, 1200, 'bandpass');
+  }
+
+  playWin() {
+    if (!this.enabled) return;
+    this._ensureCtx();
+    const now = this.ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99];
+    notes.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now + i * 0.15);
+      gain.gain.linearRampToValueAtTime(0.25, now + i * 0.15 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 1.2);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + i * 0.15);
+      osc.stop(now + i * 0.15 + 1.2);
+    });
+  }
+
+  playLose() {
+    if (!this.enabled) return;
+    this._ensureCtx();
+    const now = this.ctx.currentTime;
+    const notes = [300, 220, 150];
+    notes.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, now + i * 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.3 + 0.6);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + i * 0.3);
+      osc.stop(now + i * 0.3 + 0.6);
+    });
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    return this.enabled;
+  }
+}
+
+const sound = new SoundEngine();
+
 const SIZE = 15;
 const CELL = 38;
 const PADDING = 28;
@@ -1337,6 +1507,12 @@ function placeStone(r, c, player, recordHistory = true) {
   hintPos = null;
   draw();
 
+  if (player === humanPlayer) {
+    sound.playPlaceBlack();
+  } else {
+    sound.playPlaceWhite();
+  }
+
   const cells = checkWin(board, r, c, player);
   if (cells) {
     gameOver = true;
@@ -1344,9 +1520,11 @@ function placeStone(r, c, player, recordHistory = true) {
     if (player === humanPlayer) {
       wins++;
       $status.textContent = '// YOU WIN';
+      sound.playWin();
     } else {
       losses++;
       $status.textContent = '// AI WINS';
+      sound.playLose();
     }
     $status.classList.add('win');
     updateScore();
@@ -1853,6 +2031,13 @@ function aiMove() {
   history.push({r, c, player: aiPlayer});
   hintPos = null;
   thinking = false;
+
+  if (aiPlayer === humanPlayer) {
+    sound.playPlaceBlack();
+  } else {
+    sound.playPlaceWhite();
+  }
+
   const cells = checkWin(board, r, c, aiPlayer);
   if (cells) {
     gameOver = true;
@@ -1861,6 +2046,7 @@ function aiMove() {
     $status.textContent = '// AI WINS';
     $status.classList.add('win');
     updateScore();
+    sound.playLose();
   } else if (isBoardFull(board)) {
     gameOver = true;
     draws++;
@@ -1916,6 +2102,20 @@ document.getElementById('btnUndo').addEventListener('click', undo);
 
 document.getElementById('btnHelp').addEventListener('click', () => {
   $helpOverlay.classList.add('show');
+});
+
+document.getElementById('btnSound').addEventListener('click', () => {
+  const enabled = sound.toggle();
+  const btn = document.getElementById('btnSound');
+  const span = btn.querySelector('span');
+  const svg = btn.querySelector('svg');
+  if (enabled) {
+    span.textContent = '音效';
+    svg.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+  } else {
+    span.textContent = '静音';
+    svg.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+  }
 });
 
 document.getElementById('btnCloseHelp').addEventListener('click', () => {

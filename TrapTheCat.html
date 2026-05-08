@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>围小猫 - 经典益智游戏</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Cinzel:wght@400;700&family=Playfair+Display:wght@400;700&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;700&family=Crimson+Text:wght@400;700&family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        [data-theme="cyberpunk"] {
+            --bg: #0a0a0f;
+            --bg-panel: rgba(13, 13, 20, 0.95);
+            --primary: #00fff0;
+            --secondary: #ff00ff;
+            --accent: #fcee0a;
+            --text: #e0e0e0;
+            --text-dim: #666680;
+            --font-display: 'Orbitron', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --glow-primary: 0 0 20px rgba(0, 255, 240, 0.5);
+            --card-bg: rgba(13, 13, 20, 0.8);
+            --card-border: 1px solid rgba(0, 255, 240, 0.3);
+            --radius: 0;
+            --shadow: 0 0 30px rgba(0, 255, 240, 0.1);
+            --cell-bg: rgba(0, 255, 240, 0.15);
+            --cell-hover: rgba(0, 255, 240, 0.35);
+            --blocked-bg: #334155;
+            --board-bg: rgba(13, 13, 20, 0.9);
+        }
+
+        [data-theme="ocean-depths"] {
+            --bg: linear-gradient(180deg, #0a1628 0%, #1a3a52 50%, #0d2137 100%);
+            --bg-panel: rgba(26, 58, 82, 0.7);
+            --primary: #4dd0e1;
+            --secondary: #80deea;
+            --accent: #b2ebf2;
+            --text: #e0f7fa;
+            --text-dim: #81d4fa;
+            --font-display: 'Cinzel', serif;
+            --font-mono: 'Work Sans', sans-serif;
+            --glow-primary: 0 4px 20px rgba(77, 208, 225, 0.3);
+            --card-bg: rgba(26, 58, 82, 0.8);
+            --card-border: none;
+            --radius: 20px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --cell-bg: rgba(77, 208, 225, 0.2);
+            --cell-hover: rgba(77, 208, 225, 0.4);
+            --blocked-bg: #1a3a52;
+            --board-bg: rgba(26, 58, 82, 0.85);
+        }
+
+        [data-theme="sunset-boulevard"] {
+            --bg: linear-gradient(135deg, #2d1b2e 0%, #1a1a2e 50%, #16213e 100%);
+            --bg-panel: rgba(45, 27, 46, 0.75);
+            --primary: #ff6b6b;
+            --secondary: #feca57;
+            --accent: #ff9ff3;
+            --text: #ffeaa7;
+            --text-dim: #fab1a0;
+            --font-display: 'Playfair Display', serif;
+            --font-mono: 'Crimson Text', serif;
+            --glow-primary: 0 4px 20px rgba(255, 107, 107, 0.3);
+            --card-bg: rgba(45, 27, 46, 0.8);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 10px 40px rgba(255, 107, 107, 0.2);
+            --cell-bg: rgba(255, 107, 107, 0.2);
+            --cell-hover: rgba(255, 107, 107, 0.4);
+            --blocked-bg: #2d1b2e;
+            --board-bg: rgba(45, 27, 46, 0.85);
+        }
+
+        [data-theme="forest-canopy"] {
+            --bg: linear-gradient(160deg, #1a2f1a 0%, #2d4a2b 50%, #1e3d1e 100%);
+            --bg-panel: rgba(45, 74, 43, 0.8);
+            --primary: #a5d6a7;
+            --secondary: #81c784;
+            --accent: #c8e6c9;
+            --text: #e8f5e9;
+            --text-dim: #a5d6a7;
+            --font-display: 'Noto Serif SC', serif;
+            --font-mono: 'Noto Sans SC', sans-serif;
+            --glow-primary: 0 4px 15px rgba(129, 199, 132, 0.25);
+            --card-bg: rgba(45, 74, 43, 0.85);
+            --card-border: none;
+            --radius: 12px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+            --cell-bg: rgba(129, 199, 132, 0.25);
+            --cell-hover: rgba(129, 199, 132, 0.45);
+            --blocked-bg: #1a2f1a;
+            --board-bg: rgba(45, 74, 43, 0.9);
+        }
+
+        [data-theme="modern-minimalist"] {
+            --bg: #f8f9fa;
+            --bg-panel: #ffffff;
+            --primary: #212529;
+            --secondary: #495057;
+            --accent: #000000;
+            --text: #212529;
+            --text-dim: #6c757d;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Work Sans', sans-serif;
+            --glow-primary: none;
+            --card-bg: #ffffff;
+            --card-border: 1px solid #dee2e6;
+            --radius: 8px;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --cell-bg: #e9ecef;
+            --cell-hover: #dee2e6;
+            --blocked-bg: #343a40;
+            --board-bg: #ffffff;
+        }
+
+        [data-theme="golden-hour"] {
+            --bg: linear-gradient(145deg, #2c2416 0%, #3d3020 50%, #2a2015 100%);
+            --bg-panel: rgba(61, 48, 32, 0.85);
+            --primary: #d4af37;
+            --secondary: #c9a227;
+            --accent: #f4e4c1;
+            --text: #f5f0e1;
+            --text-dim: #c9b896;
+            --font-display: 'Cinzel', serif;
+            --font-mono: 'Crimson Text', serif;
+            --glow-primary: 0 4px 20px rgba(212, 175, 55, 0.25);
+            --card-bg: rgba(61, 48, 32, 0.9);
+            --card-border: 1px solid rgba(212, 175, 55, 0.3);
+            --radius: 4px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --cell-bg: rgba(212, 175, 55, 0.2);
+            --cell-hover: rgba(212, 175, 55, 0.4);
+            --blocked-bg: #2c2416;
+            --board-bg: rgba(61, 48, 32, 0.9);
+        }
+
+        [data-theme="arctic-frost"] {
+            --bg: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 50%, #e1f5fe 100%);
+            --bg-panel: rgba(255, 255, 255, 0.9);
+            --primary: #1976d2;
+            --secondary: #42a5f5;
+            --accent: #0d47a1;
+            --text: #1565c0;
+            --text-dim: #64b5f6;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Work Sans', sans-serif;
+            --glow-primary: 0 4px 15px rgba(25, 118, 210, 0.2);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: none;
+            --radius: 24px;
+            --shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
+            --cell-bg: rgba(25, 118, 210, 0.12);
+            --cell-hover: rgba(25, 118, 210, 0.25);
+            --blocked-bg: #1565c0;
+            --board-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        [data-theme="desert-rose"] {
+            --bg: linear-gradient(135deg, #2d1f24 0%, #3d282e 50%, #2d1f24 100%);
+            --bg-panel: rgba(61, 40, 46, 0.8);
+            --primary: #e8b4b8;
+            --secondary: #d4a5a5;
+            --accent: #f5e6e8;
+            --text: #fce4ec;
+            --text-dim: #f8bbd9;
+            --font-display: 'Playfair Display', serif;
+            --font-mono: 'Crimson Text', serif;
+            --glow-primary: 0 4px 15px rgba(232, 180, 184, 0.2);
+            --card-bg: rgba(61, 40, 46, 0.85);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+            --cell-bg: rgba(232, 180, 184, 0.2);
+            --cell-hover: rgba(232, 180, 184, 0.4);
+            --blocked-bg: #2d1f24;
+            --board-bg: rgba(61, 40, 46, 0.9);
+        }
+
+        [data-theme="tech-innovation"] {
+            --bg: #161b22;
+            --bg-panel: rgba(33, 38, 45, 0.95);
+            --primary: #58a6ff;
+            --secondary: #79c0ff;
+            --accent: #ffffff;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --font-display: 'Space Mono', monospace;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 0 15px rgba(88, 166, 255, 0.3);
+            --card-bg: rgba(33, 38, 45, 0.95);
+            --card-border: 1px solid #30363d;
+            --radius: 6px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --cell-bg: rgba(88, 166, 255, 0.15);
+            --cell-hover: rgba(88, 166, 255, 0.35);
+            --blocked-bg: #21262d;
+            --board-bg: rgba(33, 38, 45, 0.95);
+        }
+
+        [data-theme="botanical-garden"] {
+            --bg: linear-gradient(145deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);
+            --bg-panel: rgba(46, 125, 50, 0.85);
+            --primary: #ffeb3b;
+            --secondary: #ff9800;
+            --accent: #fffde7;
+            --text: #f1f8e9;
+            --text-dim: #c5e1a5;
+            --font-display: 'Noto Serif SC', serif;
+            --font-mono: 'Noto Sans SC', sans-serif;
+            --glow-primary: 0 4px 15px rgba(255, 235, 59, 0.25);
+            --card-bg: rgba(46, 125, 50, 0.9);
+            --card-border: none;
+            --radius: 20px;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+            --cell-bg: rgba(255, 235, 59, 0.2);
+            --cell-hover: rgba(255, 235, 59, 0.4);
+            --blocked-bg: #1b5e20;
+            --board-bg: rgba(46, 125, 50, 0.9);
+        }
+
+        [data-theme="midnight-galaxy"] {
+            --bg: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            --bg-panel: rgba(48, 43, 99, 0.75);
+            --primary: #b39ddb;
+            --secondary: #9575cd;
+            --accent: #e1bee7;
+            --text: #ede7f6;
+            --text-dim: #b39ddb;
+            --font-display: 'Cinzel', serif;
+            --font-mono: 'Space Mono', monospace;
+            --glow-primary: 0 4px 20px rgba(179, 157, 219, 0.3);
+            --card-bg: rgba(48, 43, 99, 0.8);
+            --card-border: none;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --cell-bg: rgba(179, 157, 219, 0.2);
+            --cell-hover: rgba(179, 157, 219, 0.4);
+            --blocked-bg: #1a1a2e;
+            --board-bg: rgba(48, 43, 99, 0.85);
+        }
+
+        body {
+            font-family: var(--font-mono);
+            background: var(--bg);
+            min-height: 100vh;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            touch-action: manipulation;
+            overflow-x: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: var(--radius);
+            background: var(--bg-panel);
+            color: var(--primary);
+            border: var(--card-border);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .back-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .sound-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            background: var(--bg-panel);
+            color: var(--primary);
+            border: var(--card-border);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .sound-toggle:hover {
+            background: var(--primary);
+            color: var(--bg);
+        }
+
+        .sound-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .header {
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-row h1 {
+            font-family: var(--font-display);
+            font-size: 28px;
+            color: var(--primary);
+            text-shadow: var(--glow-primary);
+        }
+
+        .title-row .cat-emoji {
+            font-size: 28px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--card-bg);
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            border: var(--card-border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .controls select {
+            padding: 6px 28px 6px 10px;
+            border: var(--card-border);
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--bg-panel);
+            color: var(--text);
+            cursor: pointer;
+            appearance: none;
+            font-family: var(--font-mono);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            transition: all 0.3s ease;
+        }
+
+        .controls select:focus {
+            outline: none;
+            box-shadow: var(--glow-primary);
+        }
+
+        .controls button {
+            background: var(--primary);
+            color: var(--bg);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 16px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .controls button:hover {
+            opacity: 0.85;
+            transform: scale(0.97);
+        }
+
+        .controls button:active {
+            transform: scale(0.95);
+        }
+
+        .board {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 16px;
+            background: var(--board-bg);
+            border-radius: var(--radius);
+            border: var(--card-border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .board-row {
+            display: flex;
+            gap: 2px;
+        }
+
+        .board-row.odd {
+            margin-left: 19px;
+        }
+
+        .hex-cell {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: var(--cell-bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.2s ease;
+            user-select: none;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 640px) {
+            .board { gap: 3px; padding: 20px; }
+            .board-row { gap: 3px; }
+            .hex-cell {
+                width: 42px;
+                height: 42px;
+                font-size: 26px;
+            }
+            .board-row.odd { margin-left: 23px; }
+        }
+
+        .hex-cell:hover:not(.blocked):not(.has-cat) {
+            background-color: var(--cell-hover);
+            transform: scale(1.1);
+        }
+
+        .hex-cell.blocked {
+            background-color: var(--blocked-bg);
+            cursor: not-allowed;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.4);
+            transform: scale(0.95);
+            color: var(--primary);
+        }
+
+        .blocked-icon {
+            width: 70%;
+            height: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+        }
+
+        .blocked-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .cat-icon {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0.5) translateY(-20px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .steps-display {
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+        }
+
+        .steps-display span {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: var(--card-border);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-enter {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content .modal-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+        }
+
+        .modal-content h2 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .modal-content p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .modal-content button {
+            width: 100%;
+            background: var(--primary);
+            color: var(--bg);
+            font-weight: 700;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 15px;
+            font-family: var(--font-mono);
+            transition: all 0.2s ease;
+        }
+
+        .modal-content button:hover {
+            opacity: 0.85;
+        }
+
+        .modal-content button:active {
+            transform: scale(0.97);
+        }
+
+        @media (max-width: 640px) {
+            .back-btn {
+                top: 8px;
+                left: 8px;
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .sound-toggle {
+                top: 8px;
+                right: 8px;
+                width: 36px;
+                height: 36px;
+            }
+            .header {
+                margin-bottom: 16px;
+                gap: 12px;
+            }
+            .title-row h1 {
+                font-size: 22px;
+            }
+            .board {
+                padding: 10px;
+            }
+            .hex-cell {
+                width: 30px;
+                height: 30px;
+                font-size: 18px;
+            }
+            .board-row.odd {
+                margin-left: 17px;
+            }
+        }
+    </style>
+</head>
+<body data-theme="cyberpunk">
+
+    <a href="index.html" class="back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>返回</span>
+    </a>
+
+    <button class="sound-toggle" id="sound-toggle" onclick="sound.toggle(); updateSoundIcon();" aria-label="切换声音">
+        <svg id="sound-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="sound-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+    </button>
+
+    <div class="header">
+        <div class="title-row">
+            <h1>围小猫</h1>
+            <span class="cat-emoji">🐱</span>
+        </div>
+        <p class="subtitle">点击浅色圆点放置路障，别让小猫跑出边缘！</p>
+        <div class="controls">
+            <select id="difficulty">
+                <option value="easy">简单 (多路障)</option>
+                <option value="medium" selected>普通 (适中)</option>
+                <option value="hard">困难 (少路障)</option>
+                <option value="insane">深渊 (无路障)</option>
+            </select>
+            <button onclick="initGame()">重开</button>
+        </div>
+    </div>
+
+    <div class="board" id="board"></div>
+
+    <div class="steps-display">
+        步数: <span id="steps-count">0</span>
+    </div>
+
+    <div id="modal" class="modal-overlay">
+        <div id="modal-content" class="modal-content">
+            <div id="modal-icon" class="modal-icon"></div>
+            <h2 id="modal-title">小猫跑掉了！</h2>
+            <p id="modal-desc">你没能围住它，再试一次吧。</p>
+            <button onclick="initGame()">再来一局</button>
+        </div>
+    </div>
+
+    <script>
+        class SoundEngine {
+            constructor() {
+                this.enabled = true;
+                this.ctx = null;
+            }
+
+            _ctx() {
+                if (!this.enabled) return null;
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioContext) return null;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                return this.ctx;
+            }
+
+            _tone(freq, duration, type = 'sine', volume = 0.15) {
+                const ctx = this._ctx();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(volume, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + duration);
+            }
+
+            playDrop() {
+                this._tone(880, 0.08, 'sine', 0.12);
+            }
+
+            playMove() {
+                this._tone(300, 0.06, 'triangle', 0.08);
+            }
+
+            playWin() {
+                const ctx = this._ctx();
+                if (!ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.1);
+                    osc.stop(ctx.currentTime + i * 0.1 + 0.25);
+                });
+            }
+
+            playLose() {
+                const ctx = this._ctx();
+                if (!ctx) return;
+                const notes = [392.00, 349.23, 293.66, 246.94];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.35);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.35);
+                });
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        const ROWS = 11;
+        const COLS = 11;
+
+        const SVG_CAT_NORMAL = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fb923c" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-[80%] h-[80%]"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><circle cx="9" cy="13" r="1.5" fill="#451a03" stroke="none"></circle><circle cx="15" cy="13" r="1.5" fill="#451a03" stroke="none"></circle><path d="M12 15.5c-1 0-1.5-.5-1.5-.5" stroke="#451a03"></path><path d="M12 15.5c1 0 1.5-.5 1.5-.5" stroke="#451a03"></path></svg>`;
+        const SVG_BLOCKED = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="currentColor" opacity="0.3"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+        const SVG_CAT_CRYING_SMALL = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-[80%] h-[80%]"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><circle cx="9" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><circle cx="15" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><path d="M12 16.5c-1 0-2-.5-2-.5" stroke="#0f172a"></path><path d="M12 16.5c1 0 2-.5 2-.5" stroke="#0f172a"></path><path d="M9 14.5v2" stroke="#3b82f6" stroke-width="2"></path><circle cx="9" cy="17" r="1" fill="#3b82f6" stroke="none"></circle></svg>`;
+        const SVG_CAT_HAPPY = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fcd34d" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full drop-shadow-md"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><path d="M7 13s1-1.5 2-1.5 2 1.5 2 1.5" stroke="#451a03"></path><path d="M13 13s1-1.5 2-1.5 2 1.5 2 1.5" stroke="#451a03"></path><path d="M12 15.5c-1 0-1.5-.5-1.5-.5" stroke="#451a03"></path><path d="M12 15.5c1 0 1.5-.5 1.5-.5" stroke="#451a03"></path></svg>`;
+        const SVG_CAT_CRYING = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#cbd5e1" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full drop-shadow-md"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1.1-3.48 0 0-1.9-6.42-.5-7 1.39-.58 4.69.23 6.4 2.26.67-.17 1.35-.22 2-.22z"></path><circle cx="9" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><circle cx="15" cy="13" r="1.5" fill="#0f172a" stroke="none"></circle><path d="M12 16.5c-1 0-2-.5-2-.5" stroke="#0f172a"></path><path d="M12 16.5c1 0 2-.5 2-.5" stroke="#0f172a"></path><path d="M9 14.5v2" stroke="#3b82f6" stroke-width="2"></path><circle cx="9" cy="17" r="1" fill="#3b82f6" stroke="none"></circle></svg>`;
+
+        let catPos = { r: 5, c: 5 };
+        let blockedCells = new Set();
+        let steps = 0;
+        let isGameOver = false;
+
+        const boardEl = document.getElementById('board');
+        const stepsEl = document.getElementById('steps-count');
+        const modal = document.getElementById('modal');
+
+        const DIFFICULTY_MAP = {
+            'easy': 15,
+            'medium': 10,
+            'hard': 5,
+            'insane': 0
+        };
+
+        function getNeighbors(r, c) {
+            const evenOffsets = [[0, -1], [0, 1], [-1, -1], [-1, 0], [1, -1], [1, 0]];
+            const oddOffsets = [[0, -1], [0, 1], [-1, 0], [-1, 1], [1, 0], [1, 1]];
+            const offsets = (r % 2 === 0) ? evenOffsets : oddOffsets;
+            let neighbors = [];
+            for (let [dr, dc] of offsets) {
+                let nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                    neighbors.push({ r: nr, c: nc });
+                }
+            }
+            return neighbors;
+        }
+
+        function initGame() {
+            modal.classList.remove('show');
+            document.getElementById('modal-content').classList.remove('modal-enter');
+            catPos = { r: 5, c: 5 };
+            blockedCells.clear();
+            steps = 0;
+            isGameOver = false;
+            stepsEl.innerText = steps;
+            const difficulty = document.getElementById('difficulty').value;
+            const initialBlocks = DIFFICULTY_MAP[difficulty];
+            let placed = 0;
+            while (placed < initialBlocks) {
+                let r = Math.floor(Math.random() * ROWS);
+                let c = Math.floor(Math.random() * COLS);
+                let key = `${r},${c}`;
+                if ((r !== 5 || c !== 5) && !blockedCells.has(key)) {
+                    blockedCells.add(key);
+                    placed++;
+                }
+            }
+            renderBoard();
+        }
+
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                const rowEl = document.createElement('div');
+                rowEl.className = `board-row ${r % 2 !== 0 ? 'odd' : ''}`;
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'hex-cell';
+                    cell.id = `cell-${r}-${c}`;
+                    if (blockedCells.has(`${r},${c}`)) {
+                        cell.classList.add('blocked');
+                        cell.innerHTML = `<div class="blocked-icon">${SVG_BLOCKED}</div>`;
+                    } else if (r === catPos.r && c === catPos.c) {
+                        cell.classList.add('has-cat');
+                        cell.innerHTML = `<div class="cat-icon">${SVG_CAT_NORMAL}</div>`;
+                    }
+                    cell.addEventListener('click', () => handleCellClick(r, c));
+                    rowEl.appendChild(cell);
+                }
+                boardEl.appendChild(rowEl);
+            }
+        }
+
+        function handleCellClick(r, c) {
+            if (isGameOver) return;
+            let key = `${r},${c}`;
+            if (blockedCells.has(key) || (r === catPos.r && c === catPos.c)) return;
+            blockedCells.add(key);
+            steps++;
+            stepsEl.innerText = steps;
+            sound.playDrop();
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            cell.classList.add('blocked');
+            cell.innerHTML = `<div class="blocked-icon">${SVG_BLOCKED}</div>`;
+            moveCat();
+        }
+
+        function isEdge(r, c) {
+            return r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1;
+        }
+
+        function moveCat() {
+            if (isEdge(catPos.r, catPos.c)) {
+                isGameOver = true;
+                endGame(false);
+                return;
+            }
+            let distances = Array(ROWS).fill(0).map(() => Array(COLS).fill(Infinity));
+            let queue = [];
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (isEdge(r, c) && !blockedCells.has(`${r},${c}`)) {
+                        distances[r][c] = 0;
+                        queue.push({ r, c });
+                    }
+                }
+            }
+            let head = 0;
+            while (head < queue.length) {
+                let curr = queue[head++];
+                let d = distances[curr.r][curr.c];
+                let neighbors = getNeighbors(curr.r, curr.c);
+                for (let n of neighbors) {
+                    if (!blockedCells.has(`${n.r},${n.c}`) && distances[n.r][n.c] === Infinity) {
+                        distances[n.r][n.c] = d + 1;
+                        queue.push(n);
+                    }
+                }
+            }
+            let catNeighbors = getNeighbors(catPos.r, catPos.c).filter(n => !blockedCells.has(`${n.r},${n.c}`));
+            if (catNeighbors.length === 0) {
+                isGameOver = true;
+                endGame(true);
+                return;
+            }
+            let bestMove = null;
+            let minD = Infinity;
+            let possibleMoves = [];
+            for (let n of catNeighbors) {
+                let d = distances[n.r][n.c];
+                if (d < minD) {
+                    minD = d;
+                    possibleMoves = [n];
+                } else if (d === minD) {
+                    possibleMoves.push(n);
+                }
+            }
+            if (minD < Infinity) {
+                bestMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                updateCatPosition(bestMove.r, bestMove.c);
+                if (isEdge(bestMove.r, bestMove.c)) {
+                    isGameOver = true;
+                    setTimeout(() => endGame(false), 300);
+                }
+            } else {
+                isGameOver = true;
+                const catCell = document.getElementById(`cell-${catPos.r}-${catPos.c}`);
+                catCell.innerHTML = `<div class="cat-icon">${SVG_CAT_CRYING_SMALL}</div>`;
+                setTimeout(() => endGame(true), 300);
+            }
+        }
+
+        function updateCatPosition(newR, newC) {
+            const oldCell = document.getElementById(`cell-${catPos.r}-${catPos.c}`);
+            oldCell.classList.remove('has-cat');
+            oldCell.innerHTML = '';
+            catPos = { r: newR, c: newC };
+            sound.playMove();
+            const newCell = document.getElementById(`cell-${newR}-${newC}`);
+            newCell.classList.add('has-cat');
+            newCell.innerHTML = `<div class="cat-icon">${SVG_CAT_NORMAL}</div>`;
+        }
+
+        function endGame(playerWon) {
+            isGameOver = true;
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const icon = document.getElementById('modal-icon');
+            if (playerWon) {
+                sound.playWin();
+                icon.innerHTML = SVG_CAT_HAPPY;
+                title.innerText = "你赢了！";
+                desc.innerHTML = `太棒了！你仅用了 <b style="color:var(--primary)">${steps}</b> 步就成功围住了小猫。`;
+            } else {
+                sound.playLose();
+                icon.innerHTML = SVG_CAT_CRYING;
+                title.innerText = "小猫跑掉了！";
+                desc.innerHTML = `你没能围住它，再试一次吧。`;
+            }
+            modal.classList.add('show');
+            document.getElementById('modal-content').classList.add('modal-enter');
+        }
+
+        function updateSoundIcon() {
+            const on = document.getElementById('sound-icon-on');
+            const off = document.getElementById('sound-icon-off');
+            if (sound.enabled) {
+                on.style.display = '';
+                off.style.display = 'none';
+            } else {
+                on.style.display = 'none';
+                off.style.display = '';
+            }
+        }
+
+        function getThemeFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('theme');
+        }
+
+        function setTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            localStorage.setItem('trapcat-theme', themeName);
+        }
+
+        const urlTheme = getThemeFromURL();
+        const savedTheme = urlTheme || localStorage.getItem('trapcat-theme') || 'cyberpunk';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        initGame();
+    </script>
+</body>
+</html>
