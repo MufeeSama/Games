@@ -506,6 +506,113 @@ h1 {
   color: var(--accent);
 }
 
+.game-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-with-arrows {
+  position: relative;
+}
+
+.dir-btn {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--btn-radius);
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  z-index: 20;
+}
+
+.dir-btn:hover {
+  opacity: 1;
+  background: var(--primary);
+  color: var(--bg);
+}
+
+.dir-btn:active {
+  transform: scale(0.95);
+}
+
+.dir-btn svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: none;
+}
+
+.dir-up {
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dir-down {
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dir-left {
+  left: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dir-right {
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 500px) {
+  .dir-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .dir-up {
+    top: -55px;
+  }
+  .dir-down {
+    bottom: -55px;
+  }
+  .dir-left {
+    left: -55px;
+  }
+  .dir-right {
+    right: -55px;
+  }
+}
+
+@media (max-width: 400px) {
+  .dir-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .dir-up {
+    top: -48px;
+  }
+  .dir-down {
+    bottom: -48px;
+  }
+  .dir-left {
+    left: -48px;
+  }
+  .dir-right {
+    right: -48px;
+  }
+}
+
 </style>
 </head>
 <body data-theme="cyberpunk">
@@ -529,14 +636,30 @@ h1 {
   </div>
 </div>
 
-<div class="game-container">
-  <div class="grid-container">
-    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
-    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
-    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
-    <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+<div class="game-wrapper">
+<div class="game-with-arrows">
+  <div class="game-container">
+    <div class="grid-container">
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+      <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+    </div>
+    <div class="tile-container" id="tileContainer"></div>
   </div>
-  <div class="tile-container" id="tileContainer"></div>
+  <button class="dir-btn dir-up" data-dir="0" aria-label="向上移动">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+  <button class="dir-btn dir-down" data-dir="2" aria-label="向下移动">
+    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+  </button>
+  <button class="dir-btn dir-left" data-dir="3" aria-label="向左移动">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button class="dir-btn dir-right" data-dir="1" aria-label="向右移动">
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+</div>
 </div>
 
 <div class="controls">
@@ -571,6 +694,10 @@ h1 {
     </div>
     <h2>操控方式</h2>
     <div class="help-section">
+      <h3>👆 点击方向按钮</h3>
+      <p>在棋盘四周有四个半透明箭头按钮，点击即可移动方块。<br>这是移动端推荐的操作方式，可避免误触浏览器手势。</p>
+    </div>
+    <div class="help-section">
       <h3>⌨️ 键盘控制</h3>
       <div class="key-controls">
         <div class="key-row">
@@ -581,10 +708,6 @@ h1 {
         </div>
         <p class="key-hint">W/A/S/D 对应 上/左/下/右 方向</p>
       </div>
-    </div>
-    <div class="help-section">
-      <h3>👆 触屏滑动</h3>
-      <p>在移动设备上，可以通过在屏幕上<strong>向上、向下、向左或向右滑动</strong>来移动方块。</p>
     </div>
     <div class="help-section tips">
       <h3>💡 技巧提示</h3>
@@ -762,6 +885,16 @@ function render() {
 document.getElementById('btnNew').addEventListener('click', () => {
   game.init();
   render();
+});
+
+document.querySelectorAll('.dir-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const direction = parseInt(btn.dataset.dir);
+    if (game.move(direction)) {
+      sound.playMove();
+      render();
+    }
+  });
 });
 
 const modal = document.getElementById('helpModal');
