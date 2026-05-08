@@ -357,6 +357,155 @@ h1 {
   box-shadow: var(--glow-primary);
 }
 
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+}
+
+.modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 50px rgba(0, 255, 240, 0.2);
+  backdrop-filter: blur(20px);
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: var(--primary);
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: var(--secondary);
+  text-shadow: 0 0 10px var(--secondary);
+}
+
+.modal-content h2 {
+  font-family: var(--font-display);
+  color: var(--primary);
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px var(--primary);
+  border-bottom: 1px solid rgba(0, 255, 240, 0.3);
+  padding-bottom: 10px;
+}
+
+.modal-content h2:not(:first-child) {
+  margin-top: 30px;
+}
+
+.help-section {
+  margin-bottom: 20px;
+}
+
+.help-section h3 {
+  font-size: 16px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+}
+
+.help-section p {
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.help-section ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.help-section ul li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.help-section ul li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+}
+
+.help-section strong {
+  color: var(--accent);
+}
+
+.key-controls {
+  text-align: center;
+  margin: 15px 0;
+}
+
+.key-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 45px;
+  height: 45px;
+  background: var(--grid-bg);
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 0 10px rgba(0, 255, 240, 0.2);
+}
+
+.key-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.help-section.tips {
+  background: rgba(0, 255, 240, 0.05);
+  padding: 15px;
+  border-radius: var(--panel-radius);
+  border: 1px solid rgba(0, 255, 240, 0.2);
+}
+
+.help-section.tips ul li::before {
+  color: var(--accent);
+}
+
 </style>
 </head>
 <body data-theme="cyberpunk">
@@ -392,6 +541,60 @@ h1 {
 
 <div class="controls">
   <button class="btn" id="btnNew">NEW GAME</button>
+  <button class="btn" id="btnHelp">HOW TO PLAY</button>
+</div>
+
+<div id="helpModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close">&times;</span>
+    <h2>游戏规则</h2>
+    <div class="help-section">
+      <h3>🎯 游戏目标</h3>
+      <p>通过合并相同数字的方块，最终得到 <strong>2048</strong> 这个数字！</p>
+    </div>
+    <div class="help-section">
+      <h3>🎮 游戏玩法</h3>
+      <ul>
+        <li>每次移动，所有方块都会向指定方向滑动</li>
+        <li>相邻且相同的数字方块会合并成一个，数值翻倍</li>
+        <li>每次移动后，棋盘上会随机生成一个新的 <strong>2</strong> 或 <strong>4</strong></li>
+        <li>合并后的方块不会再同一次移动中合并第二次</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h3>📊 计分规则</h3>
+      <p>每次成功合并方块，你将获得合并后方块的数值作为分数。<br>例如：合并两个 <strong>8</strong> 得到 <strong>16</strong>，加 <strong>16</strong> 分。</p>
+    </div>
+    <div class="help-section">
+      <h3>❌ 结束条件</h3>
+      <p>当棋盘填满且没有任何相邻的相同数字时，游戏结束。</p>
+    </div>
+    <h2>操控方式</h2>
+    <div class="help-section">
+      <h3>⌨️ 键盘控制</h3>
+      <div class="key-controls">
+        <div class="key-row">
+          <span class="key">W</span> 或 <span class="key">↑</span>
+        </div>
+        <div class="key-row">
+          <span class="key">A</span> <span class="key">S</span> <span class="key">D</span>
+        </div>
+        <p class="key-hint">W/A/S/D 对应 上/左/下/右 方向</p>
+      </div>
+    </div>
+    <div class="help-section">
+      <h3>👆 触屏滑动</h3>
+      <p>在移动设备上，可以通过在屏幕上<strong>向上、向下、向左或向右滑动</strong>来移动方块。</p>
+    </div>
+    <div class="help-section tips">
+      <h3>💡 技巧提示</h3>
+      <ul>
+        <li>尽量将较大的数字放在角落</li>
+        <li>保持棋盘上有空间，不要急于合并</li>
+        <li>观察整体布局，提前规划移动方向</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -561,7 +764,32 @@ document.getElementById('btnNew').addEventListener('click', () => {
   render();
 });
 
+const modal = document.getElementById('helpModal');
+const btnHelp = document.getElementById('btnHelp');
+const closeBtn = document.querySelector('.modal-close');
+
+btnHelp.addEventListener('click', () => {
+  modal.classList.add('show');
+});
+
+closeBtn.addEventListener('click', () => {
+  modal.classList.remove('show');
+});
+
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) {
+    modal.classList.remove('show');
+  }
+});
+
 document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && modal.classList.contains('show')) {
+    modal.classList.remove('show');
+    return;
+  }
+
+  if (modal.classList.contains('show')) return;
+
   let direction = -1;
   if (e.key === 'ArrowUp' || e.key === 'w') direction = 0;
   if (e.key === 'ArrowRight' || e.key === 'd') direction = 1;
