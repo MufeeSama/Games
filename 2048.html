@@ -20,10 +20,157 @@
   --text: #e0e0e0;
   --font-display: 'Orbitron', sans-serif;
   --font-mono: 'Share Tech Mono', monospace;
+  --panel-radius: 0;
   --panel-border: 1px solid rgba(0, 255, 240, 0.3);
+  --btn-radius: 0;
   --shadow: 0 0 30px rgba(0, 255, 240, 0.1);
   --grid-bg: #151520;
   --tile-bg: rgba(255, 255, 255, 0.05);
+  --glass: none;
+}
+
+[data-theme="ocean-depths"] {
+  --bg: linear-gradient(180deg, #0a1628 0%, #1a3a52 50%, #0d2137 100%);
+  --bg-panel: rgba(26, 58, 82, 0.7);
+  --primary: #4dd0e1;
+  --secondary: #80deea;
+  --accent: #b2ebf2;
+  --text: #e0f7fa;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'Work Sans', sans-serif;
+  --panel-radius: 20px;
+  --panel-border: none;
+  --btn-radius: 25px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --grid-bg: #0d2137;
+  --tile-bg: rgba(77, 208, 225, 0.1);
+  --glass: blur(10px);
+}
+
+[data-theme="sunset-boulevard"] {
+  --bg: linear-gradient(135deg, #2d1b2e 0%, #1a1a2e 50%, #16213e 100%);
+  --bg-panel: rgba(45, 27, 46, 0.75);
+  --primary: #ff6b6b;
+  --secondary: #feca57;
+  --accent: #ff9ff3;
+  --text: #ffeaa7;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'Crimson Text', serif;
+  --panel-radius: 16px;
+  --panel-border: none;
+  --btn-radius: 30px;
+  --shadow: 0 10px 40px rgba(255, 107, 107, 0.2);
+  --grid-bg: #1a1a2e;
+  --tile-bg: rgba(255, 107, 107, 0.1);
+  --glass: blur(12px);
+}
+
+[data-theme="forest-canopy"] {
+  --bg: linear-gradient(160deg, #1a2f1a 0%, #2d4a2b 50%, #1e3d1e 100%);
+  --bg-panel: rgba(45, 74, 43, 0.8);
+  --primary: #a5d6a7;
+  --secondary: #81c784;
+  --accent: #c8e6c9;
+  --text: #e8f5e9;
+  --font-display: 'Noto Serif SC', serif;
+  --font-mono: 'Noto Sans SC', sans-serif;
+  --panel-radius: 12px;
+  --panel-border: none;
+  --btn-radius: 8px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --grid-bg: #1b361b;
+  --tile-bg: rgba(165, 214, 167, 0.1);
+  --glass: blur(8px);
+}
+
+[data-theme="modern-minimalist"] {
+  --bg: #f8f9fa;
+  --bg-panel: #ffffff;
+  --primary: #212529;
+  --secondary: #495057;
+  --accent: #000000;
+  --text: #212529;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Work Sans', sans-serif;
+  --panel-radius: 8px;
+  --panel-border: 1px solid #dee2e6;
+  --btn-radius: 6px;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --grid-bg: #f1f3f5;
+  --tile-bg: #e9ecef;
+  --glass: none;
+}
+
+[data-theme="golden-hour"] {
+  --bg: linear-gradient(145deg, #2c2416 0%, #3d3020 50%, #2a2015 100%);
+  --bg-panel: rgba(61, 48, 32, 0.85);
+  --primary: #d4af37;
+  --secondary: #c9a227;
+  --accent: #f4e4c1;
+  --text: #f5f0e1;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'Crimson Text', serif;
+  --panel-radius: 4px;
+  --panel-border: 1px solid rgba(212, 175, 55, 0.3);
+  --btn-radius: 0;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --grid-bg: #2a2015;
+  --tile-bg: rgba(212, 175, 55, 0.1);
+  --glass: blur(10px);
+}
+
+[data-theme="arctic-frost"] {
+  --bg: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 50%, #e1f5fe 100%);
+  --bg-panel: rgba(255, 255, 255, 0.9);
+  --primary: #1976d2;
+  --secondary: #42a5f5;
+  --accent: #0d47a1;
+  --text: #1565c0;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Work Sans', sans-serif;
+  --panel-radius: 24px;
+  --panel-border: none;
+  --btn-radius: 50px;
+  --shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
+  --grid-bg: #e3f2fd;
+  --tile-bg: #bbdefb;
+  --glass: blur(10px);
+}
+
+[data-theme="desert-rose"] {
+  --bg: linear-gradient(135deg, #2d1f24 0%, #3d282e 50%, #2d1f24 100%);
+  --bg-panel: rgba(61, 40, 46, 0.8);
+  --primary: #e8b4b8;
+  --secondary: #d4a5a5;
+  --accent: #f5e6e8;
+  --text: #fce4ec;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'Crimson Text', serif;
+  --panel-radius: 16px;
+  --panel-border: none;
+  --btn-radius: 20px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --grid-bg: #2d1f24;
+  --tile-bg: rgba(232, 180, 184, 0.1);
+  --glass: blur(10px);
+}
+
+[data-theme="tech-innovation"] {
+  --bg: #161b22;
+  --bg-panel: rgba(33, 38, 45, 0.95);
+  --primary: #58a6ff;
+  --secondary: #79c0ff;
+  --accent: #ffffff;
+  --text: #c9d1d9;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Space Mono', monospace;
+  --panel-radius: 6px;
+  --panel-border: 1px solid #30363d;
+  --btn-radius: 6px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --grid-bg: #1c2128;
+  --tile-bg: rgba(88, 166, 255, 0.05);
+  --glass: none;
 }
 
 body {
@@ -45,6 +192,7 @@ body {
   z-index: 100;
   background: var(--bg-panel);
   border: var(--panel-border);
+  border-radius: var(--btn-radius);
   padding: 10px 16px;
   color: var(--primary);
   text-decoration: none;
@@ -52,7 +200,16 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  backdrop-filter: var(--glass);
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-primary);
+  background: var(--primary);
+  color: var(--bg);
 }
 
 .header {
@@ -77,9 +234,12 @@ h1 {
 .score-box {
   background: var(--bg-panel);
   border: var(--panel-border);
+  border-radius: var(--panel-radius);
   padding: 10px 20px;
   min-width: 100px;
   text-align: center;
+  box-shadow: var(--shadow);
+  backdrop-filter: var(--glass);
 }
 
 .score-label {
@@ -99,9 +259,10 @@ h1 {
   width: min(400px, 90vw);
   height: min(400px, 90vw);
   background: var(--grid-bg);
-  border: 4px solid var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
   padding: 15px;
-  border-radius: 6px;
+  box-shadow: var(--shadow);
 }
 
 .grid-container {
@@ -180,16 +341,20 @@ h1 {
   padding: 12px 24px;
   background: var(--bg-panel);
   border: var(--panel-border);
+  border-radius: var(--btn-radius);
   color: var(--primary);
   font-family: var(--font-mono);
   cursor: pointer;
   font-weight: 700;
   letter-spacing: 2px;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
 }
 
 .btn:hover {
   background: var(--primary);
   color: var(--bg);
+  box-shadow: var(--glow-primary);
 }
 
 </style>
@@ -257,6 +422,16 @@ class SoundEngine {
   playMove() { this.playTone(400, 0.08, 'sine', 0.1); }
   playMerge() { this.playTone(800, 0.1, 'sine', 0.2); }
 }
+
+// Theme loading logic
+function getThemeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('theme');
+}
+
+const urlTheme = getThemeFromURL();
+const savedTheme = urlTheme || localStorage.getItem('game-theme') || 'cyberpunk';
+document.body.setAttribute('data-theme', savedTheme);
 
 const sound = new SoundEngine();
 

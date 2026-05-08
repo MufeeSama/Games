@@ -12,7 +12,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* ============================================
-   THEMES (Simplified for Othello)
+   THEMES (Synchronized with Gomoku/Home)
    ============================================ */
 [data-theme="cyberpunk"] {
   --bg: #0a0a0f;
@@ -32,6 +32,186 @@
   --btn-radius: 0;
   --shadow: 0 0 30px rgba(0, 255, 240, 0.1);
   --glass: none;
+}
+
+[data-theme="ocean-depths"] {
+  --bg: linear-gradient(180deg, #0a1628 0%, #1a3a52 50%, #0d2137 100%);
+  --bg-panel: rgba(26, 58, 82, 0.7);
+  --primary: #4dd0e1;
+  --secondary: #80deea;
+  --accent: #b2ebf2;
+  --text: #e0f7fa;
+  --text-dim: #81d4fa;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'Work Sans', sans-serif;
+  --glow-primary: 0 4px 20px rgba(77, 208, 225, 0.3);
+  --board-bg: #0d2137;
+  --board-grid: rgba(77, 208, 225, 0.2);
+  --panel-radius: 20px;
+  --panel-border: none;
+  --btn-radius: 25px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass: blur(10px);
+}
+
+[data-theme="sunset-boulevard"] {
+  --bg: linear-gradient(135deg, #2d1b2e 0%, #1a1a2e 50%, #16213e 100%);
+  --bg-panel: rgba(45, 27, 46, 0.75);
+  --primary: #ff6b6b;
+  --secondary: #feca57;
+  --accent: #ff9ff3;
+  --text: #ffeaa7;
+  --text-dim: #fab1a0;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'Crimson Text', serif;
+  --glow-primary: 0 4px 20px rgba(255, 107, 107, 0.3);
+  --board-bg: #1a1a2e;
+  --board-grid: rgba(255, 107, 107, 0.15);
+  --panel-radius: 16px;
+  --panel-border: none;
+  --btn-radius: 30px;
+  --shadow: 0 10px 40px rgba(255, 107, 107, 0.2);
+  --glass: blur(12px);
+}
+
+[data-theme="forest-canopy"] {
+  --bg: linear-gradient(160deg, #1a2f1a 0%, #2d4a2b 50%, #1e3d1e 100%);
+  --bg-panel: rgba(45, 74, 43, 0.8);
+  --primary: #a5d6a7;
+  --secondary: #81c784;
+  --accent: #c8e6c9;
+  --text: #e8f5e9;
+  --text-dim: #a5d6a7;
+  --font-display: 'Noto Serif SC', serif;
+  --font-mono: 'Noto Sans SC', sans-serif;
+  --glow-primary: 0 4px 15px rgba(129, 199, 132, 0.25);
+  --board-bg: #1b361b;
+  --board-grid: rgba(165, 214, 167, 0.2);
+  --panel-radius: 12px;
+  --panel-border: none;
+  --btn-radius: 8px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --glass: blur(8px);
+}
+
+[data-theme="modern-minimalist"] {
+  --bg: #f8f9fa;
+  --bg-panel: #ffffff;
+  --primary: #212529;
+  --secondary: #495057;
+  --accent: #000000;
+  --text: #212529;
+  --text-dim: #6c757d;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Work Sans', sans-serif;
+  --glow-primary: none;
+  --board-bg: #ffffff;
+  --board-grid: rgba(33, 37, 41, 0.12);
+  --panel-radius: 8px;
+  --panel-border: 1px solid #dee2e6;
+  --btn-radius: 6px;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --glass: none;
+}
+
+[data-theme="golden-hour"] {
+  --bg: linear-gradient(145deg, #2c2416 0%, #3d3020 50%, #2a2015 100%);
+  --bg-panel: rgba(61, 48, 32, 0.85);
+  --primary: #d4af37;
+  --secondary: #c9a227;
+  --accent: #f4e4c1;
+  --text: #f5f0e1;
+  --text-dim: #c9b896;
+  --font-display: 'Cinzel', serif;
+  --font-mono: 'Crimson Text', serif;
+  --glow-primary: 0 4px 20px rgba(212, 175, 55, 0.25);
+  --board-bg: #2a2015;
+  --board-grid: rgba(212, 175, 55, 0.18);
+  --panel-radius: 4px;
+  --panel-border: 1px solid rgba(212, 175, 55, 0.3);
+  --btn-radius: 0;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass: blur(10px);
+}
+
+[data-theme="arctic-frost"] {
+  --bg: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 50%, #e1f5fe 100%);
+  --bg-panel: rgba(255, 255, 255, 0.9);
+  --primary: #1976d2;
+  --secondary: #42a5f5;
+  --accent: #0d47a1;
+  --text: #1565c0;
+  --text-dim: #64b5f6;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Work Sans', sans-serif;
+  --glow-primary: 0 4px 15px rgba(25, 118, 210, 0.2);
+  --board-bg: #ffffff;
+  --board-grid: rgba(25, 118, 210, 0.15);
+  --panel-radius: 24px;
+  --panel-border: none;
+  --btn-radius: 50px;
+  --shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
+  --glass: blur(10px);
+}
+
+[data-theme="desert-rose"] {
+  --bg: linear-gradient(135deg, #2d1f24 0%, #3d282e 50%, #2d1f24 100%);
+  --bg-panel: rgba(61, 40, 46, 0.8);
+  --primary: #e8b4b8;
+  --secondary: #d4a5a5;
+  --accent: #f5e6e8;
+  --text: #fce4ec;
+  --text-dim: #f8bbd9;
+  --font-display: 'Playfair Display', serif;
+  --font-mono: 'Crimson Text', serif;
+  --glow-primary: 0 4px 15px rgba(232, 180, 184, 0.2);
+  --board-bg: #2d1f24;
+  --board-grid: rgba(232, 180, 184, 0.15);
+  --panel-radius: 16px;
+  --panel-border: none;
+  --btn-radius: 20px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --glass: blur(10px);
+}
+
+[data-theme="tech-innovation"] {
+  --bg: #161b22;
+  --bg-panel: rgba(33, 38, 45, 0.95);
+  --primary: #58a6ff;
+  --secondary: #79c0ff;
+  --accent: #ffffff;
+  --text: #c9d1d9;
+  --text-dim: #8b949e;
+  --font-display: 'Space Mono', monospace;
+  --font-mono: 'Space Mono', monospace;
+  --glow-primary: 0 0 15px rgba(88, 166, 255, 0.3);
+  --board-bg: #1c2128;
+  --board-grid: rgba(88, 166, 255, 0.25);
+  --panel-radius: 6px;
+  --panel-border: 1px solid #30363d;
+  --btn-radius: 6px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --glass: none;
+}
+
+[data-theme="botanical-garden"] {
+  --bg: linear-gradient(145deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%);
+  --bg-panel: rgba(46, 125, 50, 0.85);
+  --primary: #ffeb3b;
+  --secondary: #ff9800;
+  --accent: #fffde7;
+  --text: #f1f8e9;
+  --text-dim: #c5e1a5;
+  --font-display: 'Noto Serif SC', serif;
+  --font-mono: 'Noto Sans SC', sans-serif;
+  --glow-primary: 0 4px 15px rgba(255, 235, 59, 0.25);
+  --board-bg: #1b5e20;
+  --board-grid: rgba(255, 235, 59, 0.15);
+  --panel-radius: 20px;
+  --panel-border: none;
+  --btn-radius: 25px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  --glass: blur(8px);
 }
 
 [data-theme="midnight-galaxy"] {
@@ -138,6 +318,8 @@ body {
   padding: 24px;
   box-shadow: var(--shadow);
   backdrop-filter: var(--glass);
+  position: relative;
+  overflow: hidden;
 }
 
 /* Board Area */
@@ -160,23 +342,31 @@ body {
   display: grid;
   grid-template-columns: repeat(8, var(--cell-size));
   grid-template-rows: repeat(8, var(--cell-size));
-  background: var(--board-bg);
-  gap: 2px;
-  border: 2px solid var(--board-grid);
-  padding: 2px;
+  background: var(--board-grid);
+  gap: 1px;
+  border: 1px solid var(--board-grid);
 }
 
 .cell {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--board-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--primary-rgb, 255, 255, 255), 0.03);
+  pointer-events: none;
 }
 
 .cell:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--primary-rgb, 255, 255, 255), 0.1);
 }
 
 .cell.valid-move::after {
@@ -209,8 +399,10 @@ h2 {
   display: flex;
   justify-content: space-around;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow);
 }
 
 /* Piece Styles with 3D animation */
@@ -336,6 +528,16 @@ h2 {
 </div>
 
 <script>
+// Theme loading logic
+function getThemeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('theme');
+}
+
+const urlTheme = getThemeFromURL();
+const savedTheme = urlTheme || localStorage.getItem('game-theme') || 'cyberpunk';
+document.body.setAttribute('data-theme', savedTheme);
+
 class SoundEngine {
   constructor() {
     this.enabled = true;
