@@ -399,6 +399,12 @@
             font-family: var(--font-display);
         }
 
+        .timer {
+            font-size: 14px;
+            color: var(--text);
+            font-family: var(--font-mono);
+        }
+
         .board-container {
             position: relative;
         }
@@ -812,15 +818,19 @@
         <div class="game-wrapper">
         <div class="game-with-controls">
             <div class="stats">
-                <div class="stat">
-                    <div class="stat-label">步数</div>
-                    <div class="stat-value" id="moves">0</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-label">记录</div>
-                    <div class="stat-value" id="best">-</div>
-                </div>
+            <div class="stat">
+                <div class="stat-label">步数</div>
+                <div class="stat-value" id="moves">0</div>
             </div>
+            <div class="stat">
+                <div class="stat-label">用时</div>
+                <div class="stat-value timer" id="timer">00:00</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">记录</div>
+                <div class="stat-value" id="best">-</div>
+            </div>
+        </div>
 
             <div class="board-container">
                 <div class="board" id="board"></div>
@@ -951,10 +961,14 @@
         let selectedBlock = null;
         let dragging = false;
         let boardRect = null;
+        let timerInterval = null;
+        let startTime = null;
+        let elapsedTime = 0;
 
         const board = document.getElementById('board');
         const movesDisplay = document.getElementById('moves');
         const bestDisplay = document.getElementById('best');
+        const timerDisplay = document.getElementById('timer');
         const levelSelect = document.getElementById('levelSelect');
         const resetBtn = document.getElementById('resetBtn');
         const winModal = document.getElementById('winModal');
@@ -987,9 +1001,35 @@
             blocks = JSON.parse(JSON.stringify(LEVELS[levelIndex].blocks));
             moves = 0;
             selectedBlock = null;
+            elapsedTime = 0;
+            stopTimer();
+            timerDisplay.textContent = '00:00';
             updateDisplay();
             renderBlocks();
             updateBestDisplay();
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(() => {
+                elapsedTime = Date.now() - startTime;
+                timerDisplay.textContent = formatTime(elapsedTime);
+            }, 100);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
 
         function updateDisplay() {
@@ -1046,6 +1086,8 @@
 
         function handleBoardClick(e) {
             if (!selectedBlock) return;
+            
+            startTimer();
             
             const boardEl = document.getElementById('board');
             const rect = boardEl.getBoundingClientRect();
@@ -1113,6 +1155,7 @@
         }
 
         function showWin() {
+            stopTimer();
             finalMoves.textContent = moves;
             winModal.classList.add('show');
             
@@ -1120,6 +1163,11 @@
             if (!best || moves < parseInt(best)) {
                 localStorage.setItem(`klotski-best-${currentLevel}`, moves);
                 updateBestDisplay();
+            }
+            
+            const bestTime = localStorage.getItem(`klotski-time-${currentLevel}`);
+            if (!bestTime || elapsedTime < parseInt(bestTime)) {
+                localStorage.setItem(`klotski-time-${currentLevel}`, elapsedTime);
             }
         }
 
@@ -1132,6 +1180,8 @@
             }
             
             if (!selectedBlock) return;
+            
+            startTimer();
             
             let dx = 0, dy = 0;
             if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') dy = -1;
@@ -1163,6 +1213,8 @@
 
         document.querySelectorAll('.dir-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                startTimer();
+                
                 if (!selectedBlock) {
                     if (blocks.length > 0) {
                         selectedBlock = blocks[0];
