@@ -943,7 +943,7 @@
             const rodEl = document.querySelectorAll('.rod')[rodIndex];
             const discs = rodEl.querySelectorAll('.disc');
             if (discs.length > 0) {
-                discs[0].classList.add('selected');
+                discs[discs.length - 1].classList.add('selected');
             }
             updateButtonSelection();
         }
