@@ -1047,9 +1047,13 @@
             const container = document.querySelector('.board-container');
             const boardEl = document.getElementById('board');
             boardRect = boardEl.getBoundingClientRect();
-            const cellWidth = boardRect.width / GRID_COLS;
-            const cellHeight = boardRect.height / GRID_ROWS;
+            
+            const padding = 12;
             const gap = 6;
+            const availableWidth = boardRect.width - padding * 2;
+            const availableHeight = boardRect.height - padding * 2;
+            const cellWidth = availableWidth / GRID_COLS;
+            const cellHeight = availableHeight / GRID_ROWS;
             
             blocks.forEach(block => {
                 const el = document.createElement('div');
@@ -1057,8 +1061,8 @@
                 el.dataset.id = block.id;
                 el.textContent = block.label || '';
                 
-                const left = block.x * cellWidth + 12;
-                const top = block.y * cellHeight + 12;
+                const left = padding + block.x * cellWidth + gap / 2;
+                const top = padding + block.y * cellHeight + gap / 2;
                 const width = block.w * cellWidth - gap;
                 const height = block.h * cellHeight - gap;
                 
