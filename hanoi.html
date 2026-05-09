@@ -1005,6 +1005,12 @@
 
         initGame();
 
+        document.querySelectorAll('.rod').forEach(rod => {
+            rod.addEventListener('click', () => {
+                handleRodClick(parseInt(rod.dataset.rod));
+            });
+        });
+
         function handleRodButtonClick(rodIndex) {
             if (selectedRod === null) {
                 if (rods[rodIndex].length > 0) {
