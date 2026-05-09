@@ -923,10 +923,7 @@
             if (selectedRod === null) {
                 if (rods[rodIndex].length > 0) {
                     selectedRod = rodIndex;
-                    const discs = document.querySelectorAll('.rod')[rodIndex].querySelectorAll('.disc');
-                    if (discs.length > 0) {
-                        discs[discs.length - 1].classList.add('selected');
-                    }
+                    highlightTopDisc(rodIndex);
                 }
             } else {
                 if (selectedRod === rodIndex) {
@@ -939,6 +936,17 @@
                     }
                 }
             }
+        }
+
+        function highlightTopDisc(rodIndex) {
+            clearSelection();
+            selectedRod = rodIndex;
+            const rodEl = document.querySelectorAll('.rod')[rodIndex];
+            const discs = rodEl.querySelectorAll('.disc');
+            if (discs.length > 0) {
+                discs[0].classList.add('selected');
+            }
+            updateButtonSelection();
         }
 
         function canMove(from, to) {
