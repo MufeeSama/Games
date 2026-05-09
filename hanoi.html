@@ -939,8 +939,7 @@
         }
 
         function highlightTopDisc(rodIndex) {
-            clearSelection();
-            selectedRod = rodIndex;
+            document.querySelectorAll('.disc').forEach(d => d.classList.remove('selected'));
             const rodEl = document.querySelectorAll('.rod')[rodIndex];
             const discs = rodEl.querySelectorAll('.disc');
             if (discs.length > 0) {
