@@ -495,6 +495,61 @@ h1 {
   opacity: 0.7;
 }
 
+/* Game Over Modal */
+.gameover-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.gameover-modal.show {
+  display: flex;
+}
+
+.gameover-content {
+  background: var(--bg-panel);
+  border: var(--panel-border);
+  border-radius: var(--panel-radius);
+  padding: 32px 40px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(0, 255, 240, 0.2);
+  backdrop-filter: blur(20px);
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.gameover-content h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--primary);
+  margin-bottom: 16px;
+  text-shadow: 0 0 10px var(--primary);
+}
+
+.gameover-content p {
+  color: var(--text);
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.gameover-content strong {
+  color: var(--accent);
+}
+
+.gameover-content .btn {
+  margin-top: 20px;
+  padding: 12px 32px;
+}
+
 .help-section.tips {
   background: rgba(0, 255, 240, 0.05);
   padding: 15px;
@@ -704,6 +759,15 @@ h1 {
   </div>
 </div>
 
+<div id="gameoverModal" class="gameover-modal">
+  <div class="gameover-content">
+    <h2>🎮 游戏结束！</h2>
+    <p>最终得分：<strong id="finalScore">0</strong></p>
+    <p>最高得分：<strong id="finalBest">0</strong></p>
+    <button class="btn" id="btnRestart">再来一局</button>
+  </div>
+</div>
+
 <script>
 // SoundEngine copy (will move to separate file if possible, for now inline)
 class SoundEngine {
@@ -842,6 +906,24 @@ class Game2048 {
     }
     return moved;
   }
+
+  isGameOver() {
+    if (this.grid.includes(null)) return false;
+
+    const size = 4;
+    const getIndex = (r, c) => r * size + c;
+
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const idx = getIndex(r, c);
+        const val = this.grid[idx];
+
+        if (c < size - 1 && val === this.grid[getIndex(r, c + 1)]) return false;
+        if (r < size - 1 && val === this.grid[getIndex(r + 1, c)]) return false;
+      }
+    }
+    return true;
+  }
 }
 
 const game = new Game2048();
@@ -858,7 +940,6 @@ function render() {
       const c = idx % 4;
       const tile = document.createElement('div');
       tile.className = `tile tile-${val}`;
-      // Calculate position with gaps (10px gap)
       tile.style.transform = `translate(calc(${c * 100}% + ${c * 10}px), calc(${r * 100}% + ${r * 10}px))`;
       tile.textContent = val;
       tileContainer.appendChild(tile);
@@ -866,18 +947,36 @@ function render() {
   });
 }
 
-document.getElementById('btnNew').addEventListener('click', () => {
+function handleMove(direction) {
+  if (game.move(direction)) {
+    sound.playMove();
+    render();
+    if (game.isGameOver()) {
+      showGameOver();
+    }
+  }
+}
+
+function showGameOver() {
+  document.getElementById('finalScore').textContent = game.score;
+  document.getElementById('finalBest').textContent = game.bestScore;
+  document.getElementById('gameoverModal').classList.add('show');
+}
+
+function restartGame() {
+  document.getElementById('gameoverModal').classList.remove('show');
   game.init();
   render();
-});
+}
+
+document.getElementById('btnNew').addEventListener('click', restartGame);
+
+document.getElementById('btnRestart').addEventListener('click', restartGame);
 
 document.querySelectorAll('.dir-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const direction = parseInt(btn.dataset.dir);
-    if (game.move(direction)) {
-      sound.playMove();
-      render();
-    }
+    handleMove(direction);
   });
 });
 
@@ -900,12 +999,19 @@ modal.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && modal.classList.contains('show')) {
-    modal.classList.remove('show');
-    return;
+  const gameoverModal = document.getElementById('gameoverModal');
+  if (e.key === 'Escape') {
+    if (gameoverModal.classList.contains('show')) {
+      restartGame();
+      return;
+    }
+    if (modal.classList.contains('show')) {
+      modal.classList.remove('show');
+      return;
+    }
   }
 
-  if (modal.classList.contains('show')) return;
+  if (modal.classList.contains('show') || gameoverModal.classList.contains('show')) return;
 
   let direction = -1;
   if (e.key === 'ArrowUp' || e.key === 'w') direction = 0;
@@ -915,10 +1021,7 @@ document.addEventListener('keydown', (e) => {
 
   if (direction !== -1) {
     e.preventDefault();
-    if (game.move(direction)) {
-      sound.playMove();
-      render();
-    }
+    handleMove(direction);
   }
 });
 
@@ -944,10 +1047,7 @@ document.addEventListener('touchend', (e) => {
     } else {
       direction = dy > 0 ? 2 : 0;
     }
-    if (game.move(direction)) {
-      sound.playMove();
-      render();
-    }
+    handleMove(direction);
   }
 });
 
